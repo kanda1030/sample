@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サンプルアップロード - ボーカルサンプルギャラリー</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .upload-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #171717;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background-color: #222;
+            color: #fff;
+            font-size: 1rem;
+        }
+        
+        .file-input-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .file-preview {
+            margin-top: 1rem;
+            max-width: 100%;
+            max-height: 300px;
+            display: none;
+            border-radius: 4px;
+        }
+
+        .audio-preview {
+            margin-top: 1rem;
+            width: 100%;
+            display: none;
+        }
+        
+        .tag-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .tag-option {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0.6;
+            user-select: none;
+        }
+        
+        .tag-option.selected {
+            opacity: 1;
+            box-shadow: 0 0 0 2px white;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #215987;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .button:hover {
+            background-color: #1a67b5;
+        }
+        
+        .button.cancel {
+            background-color: #444;
+            margin-right: 1rem;
+        }
+        
+        .button.cancel:hover {
+            background-color: #666;
+        }
+        
+        .submit-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+        
+        .status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .status-message.success {
+            background-color: rgba(41, 128, 74, 0.2);
+            border: 1px solid #298050;
+            color: #8aff9d;
+        }
+        
+        .status-message.error {
+            background-color: rgba(204, 51, 51, 0.2);
+            border: 1px solid #cc3333;
+            color: #ffaaaa;
+        }
+        
+        .status-message.info {
+            background-color: rgba(51, 102, 204, 0.2);
+            border: 1px solid #3366cc;
+            color: #aaccff;
+        }
+        
+        .file-type-selector {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .file-type-option {
+            flex: 1;
+            padding: 1rem;
+            background-color: #222;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        
+        .file-type-option:hover {
+            background-color: #333;
+        }
+        
+        .file-type-option.selected {
+            border-color: #1a67b5;
+            background-color: #1a3045;
+        }
+        
+        .file-type-option i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .uploads-list {
+            margin-top: 2rem;
+            background-color: #222;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .uploads-list h3 {
+            margin-bottom: 1rem;
+            color: #ccc;
+        }
+        
+        .upload-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background-color: #2a2a2a;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .upload-item .filename {
+            flex: 1;
+            margin-right: 1rem;
+        }
+        
+        .upload-item .status {
+            margin-right: 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .upload-item .status.success {
+            color: #8aff9d;
+        }
+        
+        .upload-item .status.error {
+            color: #ffaaaa;
+        }
+        
+        .upload-item .status.uploading {
+            color: #aaccff;
+        }
+        
+        .upload-item .action {
+            background: none;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        
+        .upload-item .action:hover {
+            color: #ff6b6b;
+        }
+        
+        .dropzone {
+            border: 2px dashed #444;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dropzone:hover, .dropzone.drag-over {
+            border-color: #1a67b5;
+            background-color: rgba(26, 103, 181, 0.1);
+        }
+        
+        .dropzone p {
+            margin: 0.5rem 0;
+            color: #999;
+        }
+        
+        .dropzone .icon {
+            font-size: 2.5rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ボーカルサンプルギャラリー</h1>
+        <nav>
+            <a href="index.html" class="nav-link">ギャラリー</a>
+            <a href="upload.html" class="nav-link active">アップロード</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="upload-container">
+            <h2>サンプルのアップロード</h2>
+            
+            <div class="form-group">
+                <label>ファイルタイプ</label>
+                <div class="file-type-selector">
+                    <div class="file-type-option selected" data-type="image">
+                        <i>🖼️</i>
+                        <div>画像ファイル</div>
+                    </div>
+                    <div class="file-type-option" data-type="audio">
+                        <i>🎵</i>
+                        <div>音声ファイル (MP3)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="dropzone" id="dropzone">
+                    <div class="icon">📁</div>
+                    <p>ファイルをここにドラッグ＆ドロップ</p>
+                    <p>または</p>
+                    <input type="file" id="file" name="file" accept="image/*,audio/mp3" multiple style="display: none;">
+                    <button class="button" id="browse-button">ファイルを選択</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>タイトルプレフィックス (自動で連番が付きます)</label>
+                <input type="text" id="title-prefix" name="title-prefix" placeholder="例: サンプルボーカル" value="サンプルボーカル">
+            </div>
+            
+            <div class="form-group">
+                <label>性別</label>
+                <div class="tag-selector gender-selector">
+                    <div class="tag-option male selected" data-value="male">男性</div>
+                    <div class="tag-option female" data-value="female">女性</div>
+                </div>
+                <input type="hidden" id="gender" name="gender" value="male">
+            </div>
+            
+            <div class="form-group">
+                <label>特徴タグ (複数選択可)</label>
+                <div class="tag-selector characteristic-selector">
+                    <div class="tag-option powerful" data-value="powerful">力強い</div>
+                    <div class="tag-option cool" data-value="cool">クール</div>
+                    <div class="tag-option soft" data-value="soft">ソフト</div>
+                    <div class="tag-option calm" data-value="calm">穏やか</div>
+                    <div class="tag-option husky" data-value="husky">ハスキー</div>
+                    <div class="tag-option cute" data-value="cute">可愛い</div>
+                    <div class="tag-option adult" data-value="adult">大人</div>
+                    <div class="tag-option young" data-value="young">少年のような</div>
+                    <div class="tag-option deep" data-value="deep">深み</div>
+                    <div class="tag-option pure" data-value="pure">ピュア</div>
+                    <div class="tag-option ethereal" data-value="ethereal">幻想的</div>
+                    <div class="tag-option mysterious" data-value="mysterious">ミステリアス</div>
+                    <div class="tag-option artistic" data-value="artistic">芸術的</div>
+                    <div class="tag-option stylish" data-value="stylish">スタイリッシュ</div>
+                    <div class="tag-option japanese" data-value="japanese">日本</div>
+                    <div class="tag-option gentle" data-value="gentle">優しい</div>
+                    <div class="tag-option my-pace" data-value="my-pace">マイペース</div>
+                </div>
+                <input type="hidden" id="tags" name="tags" value="">
+            </div>
+            
+            <div class="status-message" id="status-message"></div>
+            
+            <div class="uploads-list" id="uploads-list">
+                <h3>アップロード状況</h3>
+                <div id="uploads-container"></div>
+            </div>
+            
+            <div class="submit-row">
+                <a href="index.html" class="button">ギャラリーへ戻る</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 ボーカルサンプルギャラリー</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize variables
+            const fileInput = document.getElementById('file');
+            const browseButton = document.getElementById('browse-button');
+            const dropzone = document.getElementById('dropzone');
+            const uploadsContainer = document.getElementById('uploads-container');
+            const statusMessage = document.getElementById('status-message');
+            const titlePrefix = document.getElementById('title-prefix');
+            const genderInput = document.getElementById('gender');
+            const tagsInput = document.getElementById('tags');
+            let fileCounter = 1;
+            const uploadQueue = [];
+            let isUploading = false;
+            
+            // File type selection
+            const fileTypeOptions = document.querySelectorAll('.file-type-option');
+            
+            fileTypeOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Remove selected class from all options
+                    fileTypeOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    option.classList.add('selected');
+                    
+                    // Update file input accept attribute based on selected type
+                    if (option.dataset.type === 'image') {
+                        fileInput.setAttribute('accept', 'image/*');
+                    } else if (option.dataset.type === 'audio') {
+                        fileInput.setAttribute('accept', 'audio/mp3');
+                    }
+                });
+            });
+            
+            // Browse button click
+            browseButton.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            // File selection event
+            fileInput.addEventListener('change', () => {
+                handleFiles(fileInput.files);
+            });
+            
+            // Drag and drop functionality
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('drag-over');
+            });
+            
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('drag-over');
+            });
+            
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFiles(files);
+                }
+            });
+            
+            // Tag selection functionality
+            const genderSelector = document.querySelector('.gender-selector');
+            const genderOptions = genderSelector.querySelectorAll('.tag-option');
+            
+            genderOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Remove selected class from all options
+                    genderOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    option.classList.add('selected');
+                    
+                    // Update hidden input
+                    genderInput.value = option.dataset.value;
+                });
+            });
+            
+            const characteristicSelector = document.querySelector('.characteristic-selector');
+            const characteristicOptions = characteristicSelector.querySelectorAll('.tag-option');
+            
+            characteristicOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Toggle selected class
+                    option.classList.toggle('selected');
+                    
+                    // Update hidden input with all selected values
+                    const selectedOptions = [...characteristicOptions]
+                        .filter(opt => opt.classList.contains('selected'))
+                        .map(opt => opt.dataset.value);
+                    
+                    tagsInput.value = selectedOptions.join(',');
+                });
+            });
+            
+            // Handle files function
+            function handleFiles(files) {
+                if (!files || files.length === 0) return;
+                
+                const selectedType = document.querySelector('.file-type-option.selected').dataset.type;
+                const acceptExtensions = selectedType === 'image' 
+                    ? ['.jpg', '.jpeg', '.png', '.gif'] 
+                    : ['.mp3'];
+                
+                // Add files to upload queue
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                    
+                    if (!acceptExtensions.some(ext => fileExt.endsWith(ext))) {
+                        addUploadItem({
+                            id: 'error-' + Date.now() + '-' + i,
+                            name: file.name,
+                            status: 'error',
+                            message: '不正なファイル形式です'
+                        });
+                        continue;
+                    }
+                    
+                    const uploadId = 'upload-' + Date.now() + '-' + i;
+                    const title = `${titlePrefix.value}${fileCounter++}`;
+                    
+                    addUploadItem({
+                        id: uploadId,
+                        name: file.name,
+                        status: 'pending',
+                        message: 'アップロード待機中...'
+                    });
+                    
+                    uploadQueue.push({
+                        id: uploadId,
+                        file: file,
+                        title: title
+                    });
+                }
+                
+                // Start uploading if not already uploading
+                if (!isUploading) {
+                    processUploadQueue();
+                }
+            }
+            
+            // Add upload item to the list
+            function addUploadItem(item) {
+                const uploadItem = document.createElement('div');
+                uploadItem.className = 'upload-item';
+                uploadItem.id = item.id;
+                
+                uploadItem.innerHTML = `
+                    <div class="filename">${item.name}</div>
+                    <div class="status ${item.status}">${item.message}</div>
+                    <button class="action" data-id="${item.id}">✕</button>
+                `;
+                
+                uploadsContainer.appendChild(uploadItem);
+                
+                // Add event listener to remove button
+                const removeButton = uploadItem.querySelector('.action');
+                removeButton.addEventListener('click', () => {
+                    // Remove from UI
+                    uploadItem.remove();
+                    
+                    // Remove from queue if pending
+                    const queueIndex = uploadQueue.findIndex(upload => upload.id === item.id);
+                    if (queueIndex !== -1) {
+                        uploadQueue.splice(queueIndex, 1);
+                    }
+                });
+            }
+            
+            // Update upload item status
+            function updateUploadStatus(id, status, message) {
+                const uploadItem = document.getElementById(id);
+                if (!uploadItem) return;
+                
+                const statusElement = uploadItem.querySelector('.status');
+                statusElement.className = `status ${status}`;
+                statusElement.textContent = message;
+            }
+            
+            // Process upload queue
+            async function processUploadQueue() {
+                if (uploadQueue.length === 0) {
+                    isUploading = false;
+                    return;
+                }
+                
+                isUploading = true;
+                const upload = uploadQueue.shift();
+                
+                try {
+                    updateUploadStatus(upload.id, 'uploading', 'アップロード中...');
+                    
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('title', upload.title);
+                    formData.append('file', upload.file);
+                    formData.append('gender', genderInput.value);
+                    formData.append('tags', tagsInput.value);
+                    
+                    // Send request
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        updateUploadStatus(upload.id, 'success', 'アップロード完了');
+                    } else {
+                        updateUploadStatus(upload.id, 'error', result.error || 'アップロード失敗');
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    updateUploadStatus(upload.id, 'error', 'エラーが発生しました');
+                }
+                
+                // Process next in queue
+                setTimeout(processUploadQueue, 500);
+            }
+            
+            // Helper function to show status message
+            function showStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = 'status-message';
+                statusMessage.classList.add(type);
+                statusMessage.style.display = 'block';
+                
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html> 
