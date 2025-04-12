@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP3 データベース - アップロード・ダウンロード</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #171717;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        h1, h2, h3 {
+            color: #eee;
+            margin-top: 0;
+        }
+        
+        .status-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .status-message.success {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+        
+        .status-message.error {
+            background-color: rgba(255, 102, 102, 0.2);
+            color: #ff6666;
+        }
+        
+        .upload-section, .download-section {
+            background-color: #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .mp3-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .mp3-item {
+            background-color: #444;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        button, .download-button {
+            background-color: #215987;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover, .download-button:hover {
+            background-color: #1a67b5;
+        }
+        
+        input[type="file"], input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+        
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .file-info {
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .db-status {
+            background-color: #2a2a2a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MP3 データベース</h1>
+        
+        <div class="db-status" id="db-status">データベース初期化中...</div>
+        
+        <div class="upload-section">
+            <h2>MP3アップロード</h2>
+            <form id="upload-form">
+                <div class="form-group">
+                    <label for="title">タイトル:</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="artist">アーティスト:</label>
+                    <input type="text" id="artist" name="artist">
+                </div>
+                
+                <div class="form-group">
+                    <label for="gender">性別:</label>
+                    <select id="gender" name="gender">
+                        <option value="">選択なし</option>
+                        <option value="male">男性</option>
+                        <option value="female">女性</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="mp3-upload">MP3ファイル:</label>
+                    <input type="file" id="mp3-upload" name="mp3File" accept="audio/mp3" required>
+                    <div id="file-info" class="file-info"></div>
+                </div>
+                
+                <button type="submit" id="upload-button">データベースに保存</button>
+            </form>
+            <div id="upload-status"></div>
+        </div>
+        
+        <div class="download-section">
+            <h2>MP3データベース</h2>
+            
+            <div id="demo-download">
+                <div class="mp3-item">
+                    <span>微かにハスキーなボーカル (2).mp3</span>
+                    <a href="uploads/微かにハスキーなボーカル (2).mp3" download="微かにハスキーなボーカル (2).mp3" class="download-button">ダウンロード</a>
+                </div>
+                <audio controls src="uploads/微かにハスキーなボーカル (2).mp3"></audio>
+            </div>
+            
+            <hr style="border-color: #555; margin: 20px 0;">
+            
+            <h3>データベース内のMP3ファイル</h3>
+            <div id="mp3-list-container">
+                <ul id="mp3-list" class="mp3-list">
+                    <!-- データベースからのMP3がここに表示されます -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // IndexedDB データベース初期化
+            let db;
+            const dbName = 'mp3Database';
+            const dbVersion = 1;
+            const dbStatus = document.getElementById('db-status');
+            const mp3List = document.getElementById('mp3-list');
+            const uploadForm = document.getElementById('upload-form');
+            const uploadStatus = document.getElementById('upload-status');
+            const fileInput = document.getElementById('mp3-upload');
+            const fileInfo = document.getElementById('file-info');
+            
+            // データベースを開く
+            const request = indexedDB.open(dbName, dbVersion);
+            
+            request.onerror = function(event) {
+                dbStatus.textContent = 'データベースエラー: ' + event.target.errorCode;
+                dbStatus.className = 'db-status error';
+                console.error('IndexedDB エラー:', event.target.errorCode);
+            };
+            
+            request.onupgradeneeded = function(event) {
+                db = event.target.result;
+                
+                // オブジェクトストアを作成
+                if (!db.objectStoreNames.contains('mp3s')) {
+                    const store = db.createObjectStore('mp3s', { keyPath: 'id', autoIncrement: true });
+                    store.createIndex('title', 'title', { unique: false });
+                    store.createIndex('artist', 'artist', { unique: false });
+                    store.createIndex('gender', 'gender', { unique: false });
+                    store.createIndex('uploadDate', 'uploadDate', { unique: false });
+                }
+            };
+            
+            request.onsuccess = function(event) {
+                db = event.target.result;
+                dbStatus.textContent = 'データベース接続成功';
+                dbStatus.className = 'db-status success';
+                console.log('IndexedDB 接続成功');
+                
+                // データベースからMP3を読み込み
+                loadMp3sFromDatabase();
+            };
+            
+            // MP3ファイル選択時の情報表示
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    fileInfo.textContent = `サイズ: ${formatFileSize(file.size)}`;
+                    
+                    // タイトルが空の場合、ファイル名から拡張子を除いたものを設定
+                    const titleInput = document.getElementById('title');
+                    if (!titleInput.value) {
+                        titleInput.value = file.name.replace(/\.[^/.]+$/, '');
+                    }
+                } else {
+                    fileInfo.textContent = '';
+                }
+            });
+            
+            // アップロードフォーム送信
+            uploadForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('title').value;
+                const artist = document.getElementById('artist').value;
+                const gender = document.getElementById('gender').value;
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    showStatus('ファイルを選択してください', 'error');
+                    return;
+                }
+                
+                if (file.type !== 'audio/mp3' && !file.name.endsWith('.mp3')) {
+                    showStatus('MP3ファイルのみ対応しています', 'error');
+                    return;
+                }
+                
+                // ファイルを読み込み
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    // データベースにMP3を保存
+                    const mp3Data = {
+                        title: title,
+                        artist: artist,
+                        gender: gender,
+                        fileName: file.name,
+                        fileSize: file.size,
+                        fileType: file.type,
+                        data: event.target.result,
+                        uploadDate: new Date()
+                    };
+                    
+                    saveMp3ToDatabase(mp3Data);
+                };
+                
+                reader.readAsArrayBuffer(file);
+                showStatus('アップロード中...', 'pending');
+            });
+            
+            // データベースにMP3を保存
+            function saveMp3ToDatabase(mp3Data) {
+                const transaction = db.transaction(['mp3s'], 'readwrite');
+                const store = transaction.objectStore('mp3s');
+                const request = store.add(mp3Data);
+                
+                request.onsuccess = function() {
+                    showStatus(`「${mp3Data.title}」をデータベースに保存しました`, 'success');
+                    uploadForm.reset();
+                    fileInfo.textContent = '';
+                    loadMp3sFromDatabase();
+                };
+                
+                request.onerror = function(event) {
+                    showStatus('データベースへの保存に失敗しました: ' + event.target.error, 'error');
+                    console.error('データベース保存エラー:', event.target.error);
+                };
+            }
+            
+            // データベースからMP3を読み込み
+            function loadMp3sFromDatabase() {
+                mp3List.innerHTML = '<li style="text-align: center; color: #aaa;">読み込み中...</li>';
+                
+                const transaction = db.transaction(['mp3s'], 'readonly');
+                const store = transaction.objectStore('mp3s');
+                const index = store.index('uploadDate');
+                const request = index.openCursor(null, 'prev'); // 新しい順に取得
+                
+                const mp3Items = [];
+                
+                request.onsuccess = function(event) {
+                    const cursor = event.target.result;
+                    
+                    if (cursor) {
+                        mp3Items.push(cursor.value);
+                        cursor.continue();
+                    } else {
+                        displayMp3Items(mp3Items);
+                    }
+                };
+                
+                request.onerror = function(event) {
+                    mp3List.innerHTML = '<li style="text-align: center; color: #ff6666;">データベースからの読み込みに失敗しました</li>';
+                    console.error('データベース読み込みエラー:', event.target.error);
+                };
+            }
+            
+            // MP3アイテムを表示
+            function displayMp3Items(items) {
+                if (items.length === 0) {
+                    mp3List.innerHTML = '<li style="text-align: center; color: #aaa;">データベースにMP3はありません</li>';
+                    return;
+                }
+                
+                mp3List.innerHTML = '';
+                
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'mp3-item';
+                    
+                    const infoDiv = document.createElement('div');
+                    
+                    const titleSpan = document.createElement('div');
+                    titleSpan.textContent = item.title;
+                    titleSpan.style.fontWeight = 'bold';
+                    
+                    const detailsSpan = document.createElement('div');
+                    detailsSpan.style.fontSize = '0.8rem';
+                    detailsSpan.style.color = '#aaa';
+                    detailsSpan.textContent = `${item.artist ? item.artist + ' • ' : ''}${formatFileSize(item.fileSize)} • ${formatDate(item.uploadDate)}`;
+                    
+                    infoDiv.appendChild(titleSpan);
+                    infoDiv.appendChild(detailsSpan);
+                    
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'actions';
+                    
+                    const playBtn = document.createElement('button');
+                    playBtn.textContent = '再生';
+                    playBtn.addEventListener('click', function() {
+                        playMp3(item, li);
+                    });
+                    
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.textContent = 'ダウンロード';
+                    downloadBtn.className = 'download-button';
+                    downloadBtn.addEventListener('click', function() {
+                        downloadMp3(item);
+                    });
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = '削除';
+                    deleteBtn.style.backgroundColor = '#cc3333';
+                    deleteBtn.addEventListener('click', function() {
+                        if (confirm(`「${item.title}」をデータベースから削除しますか？`)) {
+                            deleteMp3(item.id, li);
+                        }
+                    });
+                    
+                    actionsDiv.appendChild(playBtn);
+                    actionsDiv.appendChild(downloadBtn);
+                    actionsDiv.appendChild(deleteBtn);
+                    
+                    li.appendChild(infoDiv);
+                    li.appendChild(actionsDiv);
+                    mp3List.appendChild(li);
+                });
+            }
+            
+            // MP3再生
+            function playMp3(mp3Item, container) {
+                // すでにオーディオ要素があれば削除
+                const existingAudio = container.querySelector('audio');
+                if (existingAudio) {
+                    container.removeChild(existingAudio);
+                    return;
+                }
+                
+                // Blob URLを作成
+                const blob = new Blob([mp3Item.data], { type: mp3Item.fileType || 'audio/mp3' });
+                const url = URL.createObjectURL(blob);
+                
+                // オーディオ要素を作成
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                audio.src = url;
+                audio.style.width = '100%';
+                audio.style.marginTop = '10px';
+                
+                // 終了時にBlobを解放
+                audio.onended = function() {
+                    URL.revokeObjectURL(url);
+                };
+                
+                container.appendChild(audio);
+                audio.play();
+            }
+            
+            // MP3ダウンロード
+            function downloadMp3(mp3Item) {
+                const blob = new Blob([mp3Item.data], { type: mp3Item.fileType || 'audio/mp3' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = mp3Item.fileName || `${mp3Item.title}.mp3`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // クリーンアップ
+                setTimeout(function() {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }
+            
+            // MP3削除
+            function deleteMp3(id, element) {
+                const transaction = db.transaction(['mp3s'], 'readwrite');
+                const store = transaction.objectStore('mp3s');
+                const request = store.delete(id);
+                
+                request.onsuccess = function() {
+                    // 要素を削除
+                    if (element && element.parentNode) {
+                        element.parentNode.removeChild(element);
+                    }
+                    
+                    // リストが空になった場合のメッセージを表示
+                    if (mp3List.children.length === 0) {
+                        mp3List.innerHTML = '<li style="text-align: center; color: #aaa;">データベースにMP3はありません</li>';
+                    }
+                    
+                    showStatus('MP3をデータベースから削除しました', 'success');
+                };
+                
+                request.onerror = function(event) {
+                    showStatus('削除に失敗しました: ' + event.target.error, 'error');
+                    console.error('削除エラー:', event.target.error);
+                };
+            }
+            
+            // ステータスメッセージ表示
+            function showStatus(message, type) {
+                uploadStatus.textContent = message;
+                uploadStatus.className = 'status-message ' + type;
+            }
+            
+            // ファイルサイズフォーマット
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' bytes';
+                else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                else return (bytes / 1048576).toFixed(1) + ' MB';
+            }
+            
+            // 日付フォーマット
+            function formatDate(date) {
+                const d = new Date(date);
+                return d.toLocaleDateString('ja-JP') + ' ' + d.toLocaleTimeString('ja-JP');
+            }
+        });
+    </script>
+</body>
+</html> 
