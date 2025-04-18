@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-PSK6V5K');</script>
+    <!-- End Google Tag Manager -->
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3JQJ50606G"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-3JQJ50606G');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MP3プレーヤーアプリ - お気に入りの音楽を聴いたり管理したりできるシンプルなインターフェース">
+    <title>MP3プレーヤー</title>
+    <style>
+        :root {
+            /* Netflix inspired color palette */
+            --netflix-black: #141414;
+            --netflix-dark: #181818;
+            --netflix-darker: #0f0f0f;
+            --netflix-grey: #808080;
+            --netflix-light-grey: #b3b3b3;
+            --netflix-lighter-grey: #e5e5e5;
+            --netflix-red: #E50914;
+            --netflix-red-hover: #f40612;
+            --netflix-red-active: #b2070e;
+            
+            /* Spacing */
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-xxl: 3rem;
+            
+            /* Layout */
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            
+            /* Transitions */
+            --transition-speed: 0.2s;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--netflix-black);
+            color: var(--netflix-lighter-grey);
+            line-height: 1.5;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Loading Spinner Styles */
+        #loading-spinner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(20, 20, 20, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        #loading-spinner .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(229, 9, 20, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--netflix-red);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        header {
+            background-color: var(--netflix-darker);
+            padding: var(--space-md) var(--space-xl);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--netflix-red);
+            text-decoration: none;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: var(--space-lg);
+        }
+        
+        nav a {
+            color: var(--netflix-light-grey);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color var(--transition-speed);
+        }
+        
+        nav a:hover,
+        nav a.active {
+            color: var(--netflix-lighter-grey);
+        }
+        
+        main {
+            flex: 1;
+            padding: var(--space-xl);
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .description {
+            font-size: 1rem;
+            color: var(--netflix-light-grey);
+            margin: var(--space-md) 0 var(--space-xl);
+        }
+        
+        /* MP3 List styling */
+        #mp3-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .mp3-item {
+            background-color: var(--netflix-dark);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .mp3-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mp3-thumbnail {
+            position: relative;
+            height: 180px;
+            background-color: var(--netflix-grey);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .mp3-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .mp3-thumbnail.no-image::before {
+            content: "\f001";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .mp3-content {
+            padding: var(--space-md);
+            position: relative;
+        }
+        
+        .mp3-number-display {
+            position: absolute;
+            top: -25px;
+            left: var(--space-md);
+            background-color: var(--netflix-red);
+            color: white;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mp3-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .mp3-details {
+            display: flex;
+            justify-content: space-between;
+            color: var(--netflix-grey);
+            font-size: 0.85rem;
+            margin-bottom: var(--space-md);
+        }
+        
+        .audio-container {
+            margin-bottom: var(--space-md);
+        }
+        
+        button {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--netflix-lighter-grey);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            font-size: 0.9rem;
+        }
+        
+        button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .play-button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .play-button:hover {
+            background-color: var(--netflix-red);
+        }
+        
+        .mp3-buttons {
+            display: flex;
+            gap: var(--space-sm);
+        }
+        
+        .download-btn, .notion-btn {
+            padding: var(--space-sm);
+            border-radius: var(--border-radius-sm);
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .notion-btn.active {
+            background-color: var(--netflix-red);
+        }
+        
+        .notion-content {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: var(--border-radius-sm);
+            padding: var(--space-md);
+            margin-top: var(--space-md);
+            display: none;
+            border-left: 3px solid var(--netflix-red);
+        }
+        
+        .notion-content.active {
+            display: block;
+        }
+        
+        .notion-title {
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .notion-url {
+            color: var(--netflix-light-grey);
+            display: block;
+            margin-bottom: var(--space-sm);
+            word-break: break-all;
+            text-decoration: none;
+            transition: color var(--transition-speed);
+        }
+        
+        .notion-url:hover {
+            color: var(--netflix-red);
+            text-decoration: underline;
+        }
+        
+        .notion-description {
+            color: var(--netflix-light-grey);
+            font-size: 0.9rem;
+        }
+        
+        /* No MP3 message */
+        .no-mp3-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: var(--space-xxl);
+            background-color: var(--netflix-dark);
+            border-radius: var(--border-radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: var(--space-xl);
+            gap: var(--space-md);
+        }
+        
+        .page-info {
+            color: var(--netflix-light-grey);
+        }
+        
+        .pagination button {
+            padding: var(--space-sm) var(--space-md);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .pagination button:hover:not([disabled]) {
+            background-color: var(--netflix-red);
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--netflix-darker);
+            padding: var(--space-xl) var(--space-xl) var(--space-lg);
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-xl);
+        }
+        
+        .footer-section h3 {
+            color: var(--netflix-lighter-grey);
+            margin-bottom: var(--space-md);
+            font-size: 1.1rem;
+        }
+        
+        .footer-section p {
+            color: var(--netflix-grey);
+            font-size: 0.9rem;
+            margin-bottom: var(--space-md);
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section li {
+            margin-bottom: var(--space-sm);
+        }
+        
+        .footer-section a {
+            color: var(--netflix-grey);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color var(--transition-speed);
+        }
+        
+        .footer-section a:hover {
+            color: var(--netflix-lighter-grey);
+            text-decoration: underline;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: var(--space-xl);
+            padding-top: var(--space-md);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--netflix-grey);
+            font-size: 0.8rem;
+        }
+        
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: var(--space-md) var(--space-lg);
+            background-color: var(--netflix-dark);
+            color: var(--netflix-lighter-grey);
+            border-radius: var(--border-radius-sm);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transform: translateY(30px);
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification.success {
+            background-color: #2E7D32;
+        }
+        
+        .notification.error {
+            background-color: var(--netflix-red);
+        }
+        
+        .notification.info {
+            background-color: #0277BD;
+        }
+        
+        /* Empty message styles */
+        .empty-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: var(--space-xxl);
+            background-color: var(--netflix-dark);
+            border-radius: var(--border-radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            header, main, footer {
+                padding: var(--space-md);
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: var(--space-md);
+                align-items: flex-start;
+            }
+            
+            nav ul {
+                gap: var(--space-md);
+            }
+            
+            #mp3-list {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: var(--space-lg);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            header, main, footer {
+                padding: var(--space-sm);
+            }
+            
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-sm);
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            #mp3-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .mp3-thumbnail {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PSK6V5K"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner">
+        <div class="spinner"></div>
+        <div>データを読み込み中...</div>
+    </div>
+
+    <header>
+        <div class="header-content">
+            <a href="#" class="logo">MP3プレーヤー</a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">ホーム</a></li>
+                    <li><a href="player.html" class="active">プレーヤー</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="content-header">
+            <h1>MP3コレクション</h1>
+        </div>
+        <p class="description">お気に入りの音楽をリストで管理、再生できます。</p>
+
+        <div id="mp3-list">
+            <!-- MP3 items will be inserted here by JavaScript -->
+        </div>
+
+        <div class="pagination">
+            <button id="prev-page" disabled>前のページ</button>
+            <div class="page-info">1 / 1</div>
+            <button id="next-page" disabled>次のページ</button>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>MP3データベースについて</h3>
+                <p>このサイトでは、MP3ファイルを管理できます。ファイルは端末内のデータベースに保存されるため、インターネット接続がなくても利用可能です。</p>
+            </div>
+            <div class="footer-section" id="notion-links-section">
+                <h3>Notionのリンク</h3>
+                <p>データベースに保存されているNotionリンクの一覧です。</p>
+                <ul id="notion-links-list">
+                    <!-- Notion links will be inserted here by JavaScript -->
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2023 MP3プレーヤー | All Rights Reserved
+        </div>
+    </footer>
+
+    <script>
+        // DB接続検証用のボタンを追加
+        document.addEventListener('DOMContentLoaded', function() {
+            const header = document.querySelector('.content-header');
+            
+            // DB情報表示ボタン
+            const dbInfoBtn = document.createElement('button');
+            dbInfoBtn.textContent = 'DB情報表示';
+            dbInfoBtn.style.backgroundColor = 'var(--netflix-dark)';
+            dbInfoBtn.style.marginLeft = 'auto';
+            
+            dbInfoBtn.addEventListener('click', function() {
+                showDatabaseInfo();
+            });
+            
+            // DBリセットボタン
+            const dbResetBtn = document.createElement('button');
+            dbResetBtn.textContent = 'DBリセット';
+            dbResetBtn.style.backgroundColor = 'var(--netflix-red)';
+            dbResetBtn.style.marginLeft = '10px';
+            
+            dbResetBtn.addEventListener('click', function() {
+                if (confirm('データベースをリセットしますか？すべてのデータが削除されます。')) {
+                    resetDatabase();
+                }
+            });
+            
+            // 再読み込みボタン
+            const reloadBtn = document.createElement('button');
+            reloadBtn.textContent = '再読み込み';
+            reloadBtn.style.backgroundColor = 'var(--netflix-dark)';
+            reloadBtn.style.marginLeft = '10px';
+            
+            reloadBtn.addEventListener('click', function() {
+                loadMp3List();
+            });
+            
+            header.appendChild(dbInfoBtn);
+            header.appendChild(dbResetBtn);
+            header.appendChild(reloadBtn);
+        });
+
+        // データベースをリセット
+        function resetDatabase() {
+            // データベース接続を閉じる
+            if (db) {
+                db.close();
+                db = null;
+            }
+            
+            // データベースを削除
+            const deleteRequest = indexedDB.deleteDatabase(dbName);
+            
+            deleteRequest.onsuccess = function() {
+                console.log('Database deleted successfully');
+                showNotification('データベースを削除しました。ページを再読み込みします。', 'success');
+                
+                // 少し待ってからページを再読み込み
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            };
+            
+            deleteRequest.onerror = function(event) {
+                console.error('Error deleting database:', event.target.error);
+                showNotification('データベース削除エラー: ' + event.target.error.message, 'error');
+            };
+            
+            deleteRequest.onblocked = function() {
+                console.warn('Database deletion was blocked');
+                showNotification('データベース削除がブロックされました。すべてのタブを閉じて再試行してください。', 'error');
+            };
+        }
+
+        // データベース情報を表示
+        function showDatabaseInfo() {
+            if (!db) {
+                showNotification('データベースが接続されていません', 'error');
+                return;
+            }
+            
+            try {
+                const transaction = db.transaction(['mp3s'], 'readonly');
+                const objectStore = transaction.objectStore('mp3s');
+                const request = objectStore.getAll();
+                
+                request.onsuccess = function() {
+                    const items = request.result;
+                    console.log('==== データベース内の全アイテム ====');
+                    console.log(`合計: ${items.length}件`);
+                    
+                    items.forEach((item, index) => {
+                        console.log(`--- アイテム ${index + 1} (ID: ${item.id}) ---`);
+                        console.log('タイトル:', item.title);
+                        console.log('日付:', item.date);
+                        
+                        // MP3データの確認
+                        if (item.mp3) {
+                            console.log('MP3データ:', '存在します', item.mp3.byteLength || item.mp3.size, 'bytes');
+                        } else if (item.audio) {
+                            console.log('MP3データ(audio):', '存在します', item.audio.byteLength || item.audio.size, 'bytes');
+                        } else if (item.data) {
+                            console.log('MP3データ(data):', '存在します', item.data.byteLength || item.data.size, 'bytes');
+                        } else {
+                            console.log('MP3データ: 見つかりません');
+                        }
+                        
+                        // Notionデータの確認
+                        console.log('NotionタイトルとURL:', item.notionTitle, item.notionUrl);
+                        
+                        // オブジェクトのキーを表示
+                        console.log('データキー:', Object.keys(item));
+                    });
+                    
+                    showNotification('データベース情報をコンソールに表示しました', 'info');
+                };
+                
+                request.onerror = function(event) {
+                    console.error('データベース情報表示エラー:', event.target.error);
+                    showNotification('データベース情報表示エラー', 'error');
+                };
+            } catch (error) {
+                console.error('データベース情報表示中にエラーが発生しました:', error);
+                showNotification('データベース情報表示エラー: ' + error.message, 'error');
+            }
+        }
+
+        // Variables for pagination
+        let currentPage = 1;
+        const itemsPerPage = 12; // Changed to show more items per page in grid layout
+        let mp3Items = [];
+        let totalItems = 0;
+        let sortField = 'date'; // Default sort by date
+        let sortDirection = 'desc'; // Default sort direction
+
+        // Reference to page elements
+        const prevPageBtn = document.getElementById('prev-page');
+        const nextPageBtn = document.getElementById('next-page');
+        const pageInfo = document.querySelector('.page-info');
+        const mp3List = document.getElementById('mp3-list');
+        const notionLinksList = document.getElementById('notion-links-list');
+
+        // Event listeners for pagination
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                displayCurrentPage();
+            }
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+            if (currentPage < Math.ceil(totalItems / itemsPerPage)) {
+                currentPage++;
+                displayCurrentPage();
+            }
+        });
+
+        // Add loading spinner
+        const loadingSpinner = document.createElement('div');
+        loadingSpinner.className = 'loading-spinner';
+        loadingSpinner.style.display = 'none';
+        loadingSpinner.innerHTML = '<div class="spinner"></div><div style="margin-top: 10px;">データを読み込み中...</div>';
+        document.querySelector('main').appendChild(loadingSpinner);
+
+        // Connect to the database
+        let db;
+        let dbName = 'mp3Database';
+        let dbVersion = 3; // Use version 3 like index.html
+        let dbConnectionRetries = 0;
+        const MAX_DB_CONNECTION_RETRIES = 3;
+
+        // Add loading spinner management for both spinners
+        function showLoading() {
+            // Show dynamic spinner
+            loadingSpinner.style.display = 'flex';
+            // Show fixed spinner if it exists
+            const fixedSpinner = document.getElementById('loading-spinner');
+            if (fixedSpinner) {
+                fixedSpinner.style.display = 'flex';
+            }
+        }
+
+        // Function to hide loading spinner
+        function hideLoading() {
+            // Hide dynamic spinner
+            loadingSpinner.style.display = 'none';
+            // Hide fixed spinner if it exists
+            const fixedSpinner = document.getElementById('loading-spinner');
+            if (fixedSpinner) {
+                fixedSpinner.style.display = 'none';
+            }
+        }
+
+        // Ensure loading spinner is hidden as early as possible
+        window.addEventListener('load', function() {
+            const initialSpinner = document.getElementById('loading-spinner');
+            if (initialSpinner) {
+                initialSpinner.style.display = 'none';
+            }
+        });
+
+        // Global timeout as a fallback to hide any spinner
+        setTimeout(function() {
+            const initialSpinner = document.getElementById('loading-spinner');
+            if (initialSpinner) {
+                console.log('Force hiding initial loading spinner via global timeout');
+                initialSpinner.style.display = 'none';
+            }
+            
+            // Also try to hide the dynamically created spinner
+            if (typeof hideLoading === 'function') {
+                console.log('Force hiding dynamic spinner via global timeout');
+                hideLoading();
+            }
+        }, 20000); // 20 seconds global timeout
+
+        // Sort items by field
+        function sortItems(items, field, direction) {
+            return items.sort((a, b) => {
+                let valueA = a[field];
+                let valueB = b[field];
+                
+                // Handle undefined values
+                if (valueA === undefined) valueA = '';
+                if (valueB === undefined) valueB = '';
+                
+                // For dates, convert to timestamp
+                if (field === 'date') {
+                    valueA = new Date(valueA).getTime() || 0;
+                    valueB = new Date(valueB).getTime() || 0;
+                }
+                
+                // Sort direction
+                const directionFactor = direction === 'asc' ? 1 : -1;
+                
+                // String comparison for strings
+                if (typeof valueA === 'string' && typeof valueB === 'string') {
+                    return directionFactor * valueA.localeCompare(valueB);
+                }
+                
+                // Numeric comparison for numbers
+                return directionFactor * (valueA - valueB);
+            });
+        }
+
+        // Display Notion items in footer
+        function displayNotionItems(items) {
+            if (!notionLinksList) return;
+            
+            console.log('Displaying Notion links in footer');
+            
+            // Filter items that have Notion data
+            const notionItems = items.filter(item => 
+                item.notionUrl || 
+                item.notionTitle || 
+                (item.title && item.title.startsWith('Notion:'))
+            );
+            
+            console.log(`Found ${notionItems.length} items with Notion data`);
+            
+            if (notionItems.length === 0) {
+                notionLinksList.innerHTML = '<li>登録されたNotionリンクがありません</li>';
+                return;
+            }
+            
+            notionLinksList.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            
+            // Take only the first 5 items to keep the footer clean
+            notionItems.slice(0, 5).forEach(item => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = item.notionUrl || '#';
+                a.target = '_blank';
+                
+                // Get title (prefer notionTitle, fallback to title without "Notion:" prefix)
+                let displayTitle = item.notionTitle;
+                if (!displayTitle && item.title && item.title.startsWith('Notion:')) {
+                    displayTitle = item.title.substring(7).trim();
+                }
+                
+                a.textContent = displayTitle || item.title || 'Notionリンク';
+                li.appendChild(a);
+                fragment.appendChild(li);
+            });
+            
+            if (notionItems.length > 5) {
+                const li = document.createElement('li');
+                li.textContent = `...他 ${notionItems.length - 5} 件のリンク`;
+                fragment.appendChild(li);
+            }
+            
+            notionLinksList.appendChild(fragment);
+        }
+
+        // Load MP3 list from database
+        function loadMp3List() {
+            if (!db) {
+                console.error('データベースが接続されていません');
+                showNotification('データベースが接続されていません', 'error');
+                hideLoading(); // Ensure spinner is hidden
+                return;
+            }
+
+            // Check if mp3s object store exists
+            if (!db.objectStoreNames.contains('mp3s')) {
+                console.error('mp3sオブジェクトストアが存在しません');
+                showNotification('mp3sオブジェクトストアが存在しません。index.htmlでデータベースを作成してください。', 'error');
+                
+                mp3List.innerHTML = `
+                    <div class="empty-message">
+                        <i class="fas fa-database" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h3>データベースが空です</h3>
+                        <p>MP3ファイルを追加するには、<a href="index.html">アップロードページ</a>を使用してください。</p>
+                    </div>
+                `;
+                hideLoading(); // Ensure spinner is hidden
+                return;
+            }
+
+            console.log('MP3リストを読み込み中...');
+            showNotification('データベースからMP3リストを読み込み中...', 'info');
+
+            try {
+                const transaction = db.transaction(['mp3s'], 'readonly');
+                const objectStore = transaction.objectStore('mp3s');
+                
+                // Add transaction error handling
+                transaction.onerror = function(event) {
+                    console.error('トランザクションエラー:', event.target.error);
+                    showNotification('データベーストランザクションエラー', 'error');
+                    hideLoading(); // Ensure spinner is hidden
+                };
+                
+                // Count total items
+                const countRequest = objectStore.count();
+                
+                countRequest.onsuccess = function() {
+                    totalItems = countRequest.result;
+                    console.log(`データベース内のアイテム数: ${totalItems}件`);
+                    
+                    if (totalItems === 0) {
+                        mp3List.innerHTML = `
+                            <div class="empty-message">
+                                <i class="fas fa-music" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                                <h3>データベースが空です</h3>
+                                <p>MP3ファイルを追加するには、<a href="index.html">アップロードページ</a>を使用してください。</p>
+                            </div>
+                        `;
+                        hideLoading(); // Ensure spinner is hidden
+                        return;
+                    }
+                    
+                    // Get all items
+                    const request = objectStore.getAll();
+                    
+                    request.onsuccess = function(event) {
+                        try { // Add try-catch to handle any errors in processing
+                            const items = event.target.result;
+                            console.log(`${items.length}件のMP3アイテムを取得しました`);
+                            
+                            // Diagnostic information about audio data
+                            const audioDataStats = {
+                                total: items.length,
+                                hasAudioData: 0,
+                                noAudioData: 0,
+                                audioDataTypes: {},
+                                typicalAudioDataSize: null
+                            };
+                            
+                            // Inspect some items to understand data structure
+                            items.slice(0, 5).forEach((item, index) => {
+                                console.log(`アイテム ${index + 1}/${Math.min(5, items.length)} の詳細:`, {
+                                    id: item.id,
+                                    title: item.title,
+                                    date: item.date ? new Date(item.date).toLocaleString() : 'なし',
+                                    audioDataPresent: !!item.audioData || !!item.audio,
+                                    audioDataType: item.audioData ? typeof item.audioData : (item.audio ? typeof item.audio : 'なし'),
+                                    audioDataProperties: item.audioData ? Object.keys(item.audioData) : (item.audio ? Object.keys(item.audio) : [])
+                                });
+                            });
+                            
+                            // Check audio data availability across all items
+                            items.forEach(item => {
+                                const hasData = !!getRecoverableAudioData(item);
+                                if (hasData) {
+                                    audioDataStats.hasAudioData++;
+                                    
+                                    // Analyze audio data type
+                                    const audioData = getRecoverableAudioData(item);
+                                    const dataType = getAudioDataType(audioData);
+                                    audioDataStats.audioDataTypes[dataType] = (audioDataStats.audioDataTypes[dataType] || 0) + 1;
+                                    
+                                    // Get typical size
+                                    if (audioDataStats.typicalAudioDataSize === null && audioData) {
+                                        if (audioData instanceof ArrayBuffer) {
+                                            audioDataStats.typicalAudioDataSize = audioData.byteLength;
+                                        } else if (audioData.buffer instanceof ArrayBuffer) {
+                                            audioDataStats.typicalAudioDataSize = audioData.buffer.byteLength;
+                                        } else if (typeof audioData === 'object') {
+                                            audioDataStats.typicalAudioDataSize = 'オブジェクト';
+                                        }
+                                    }
+                                } else {
+                                    audioDataStats.noAudioData++;
+                                }
+                            });
+                            
+                            console.log('オーディオデータ統計:', audioDataStats);
+
+                            // Add image data statistics to the loadMp3List function
+                            const imageDataStats = {
+                                total: items.length,
+                                hasImageData: 0,
+                                noImageData: 0,
+                                imageDataTypes: {}
+                            };
+
+                            // Check image data availability across all items
+                            items.forEach(item => {
+                                const hasImage = !!getRecoverableImageData(item);
+                                if (hasImage) {
+                                    imageDataStats.hasImageData++;
+                                    
+                                    // Analyze image data type
+                                    const imageData = getRecoverableImageData(item);
+                                    const dataType = imageData.type || 'unknown';
+                                    imageDataStats.imageDataTypes[dataType] = (imageDataStats.imageDataTypes[dataType] || 0) + 1;
+                                } else {
+                                    imageDataStats.noImageData++;
+                                }
+                            });
+
+                            console.log('画像データ統計:', imageDataStats);
+                            
+                            // Sort items by the specified field and direction
+                            mp3Items = sortItems(items, sortField, sortDirection);
+                            
+                            // Store all items for Notion display in footer
+                            const allItems = [...mp3Items];
+
+                            // Filter out Notion items for display in the MP3 collection
+                            mp3Items = mp3Items.filter(item => !(item.title && item.title.startsWith('Notion:')));
+                            console.log(`表示可能なMP3アイテム: ${mp3Items.length}件 (${allItems.length - mp3Items.length}件のNotionアイテムを除外)`);
+
+                            // Display items for the current page
+                            displayCurrentPage();
+
+                            // Display Notion links in footer using all items (including Notion items)
+                            displayNotionItems(allItems);
+                            
+                            // Hide loading spinner
+                            hideLoading();
+                            
+                            // Update the notification to include image data status
+                            if (audioDataStats.noAudioData > 0 || imageDataStats.noImageData > 0) {
+                                let message = "";
+                                
+                                if (audioDataStats.noAudioData > 0) {
+                                    message += `${audioDataStats.noAudioData}件のMP3データが読み込めませんでした`;
+                                }
+                                
+                                if (imageDataStats.noImageData > 0 && imageDataStats.hasImageData > 0) {
+                                    if (message) message += "、";
+                                    message += `${imageDataStats.noImageData}件の画像が表示できません`;
+                                }
+                                
+                                showNotification(message, 'warning');
+                            } else {
+                                showNotification(`${items.length}件のMP3データを読み込みました`, 'success');
+                            }
+                        } catch (error) {
+                            console.error('MP3データの処理中にエラーが発生しました:', error);
+                            showNotification('MP3データの処理中にエラーが発生しました: ' + error.message, 'error');
+                            hideLoading(); // Ensure spinner is hidden even if processing fails
+                        }
+                    };
+                    
+                    request.onerror = function(event) {
+                        console.error('MP3データの取得エラー:', event.target.error);
+                        showNotification('MP3データの取得に失敗しました', 'error');
+                        
+                        // Hide loading spinner
+                        hideLoading();
+                    };
+                };
+                
+                countRequest.onerror = function(event) {
+                    console.error('アイテム数の取得エラー:', event.target.error);
+                    showNotification('データベース内のアイテム数の取得に失敗しました', 'error');
+                    
+                    // Hide loading spinner
+                    hideLoading();
+                };
+            } catch (error) {
+                console.error('MP3リスト読み込みエラー:', error);
+                showNotification(`MP3リスト読み込みエラー: ${error.message}`, 'error');
+                
+                // Hide loading spinner
+                hideLoading();
+            }
+            
+            // Add a global timeout to ensure the spinner is hidden
+            setTimeout(() => {
+                hideLoading();
+            }, 15000); // 15 seconds timeout
+        }
+
+        // Determine the type of audio data
+        function getAudioDataType(audioData) {
+            if (!audioData) return 'なし';
+            if (audioData instanceof ArrayBuffer) return 'ArrayBuffer';
+            if (audioData instanceof Uint8Array) return 'Uint8Array';
+            if (audioData.buffer instanceof ArrayBuffer) return 'TypedArray';
+            if (typeof audioData === 'object') return 'Object';
+            return typeof audioData;
+        }
+
+        // MP3データの回復試行関数
+        function getRecoverableAudioData(item) {
+            // 標準のプロパティをまず確認
+            if (item.audioData && (
+                item.audioData instanceof ArrayBuffer || 
+                item.audioData instanceof Uint8Array ||
+                (item.audioData.buffer && item.audioData.buffer instanceof ArrayBuffer)
+            )) {
+                return item.audioData;
+            }
+            
+            // audioプロパティを確認
+            if (item.audio && (
+                item.audio instanceof ArrayBuffer || 
+                item.audio instanceof Uint8Array ||
+                (item.audio.buffer && item.audio.buffer instanceof ArrayBuffer)
+            )) {
+                return item.audio;
+            }
+            
+            // データの形式が異なる可能性がある場合の回復試行
+            // 1. オブジェクト内の大きなバイナリプロパティを探す
+            if (item.audioData && typeof item.audioData === 'object') {
+                for (const key in item.audioData) {
+                    const prop = item.audioData[key];
+                    if (prop instanceof ArrayBuffer || 
+                        prop instanceof Uint8Array ||
+                        (prop && prop.buffer && prop.buffer instanceof ArrayBuffer)) {
+                        console.log(`回復: audioData.${key}から有効なバイナリデータを見つけました`);
+                        return prop;
+                    }
+                }
+            }
+            
+            // 2. audioプロパティがオブジェクトの場合も同様に確認
+            if (item.audio && typeof item.audio === 'object') {
+                for (const key in item.audio) {
+                    const prop = item.audio[key];
+                    if (prop instanceof ArrayBuffer || 
+                        prop instanceof Uint8Array ||
+                        (prop && prop.buffer && prop.buffer instanceof ArrayBuffer)) {
+                        console.log(`回復: audio.${key}から有効なバイナリデータを見つけました`);
+                        return prop;
+                    }
+                }
+            }
+            
+            // 3. アイテム自体の中から大きなバイナリプロパティを探す
+            for (const key in item) {
+                if (key === 'audioData' || key === 'audio') continue; // 既に確認済み
+                
+                const prop = item[key];
+                if (prop instanceof ArrayBuffer || 
+                    prop instanceof Uint8Array ||
+                    (prop && prop.buffer && prop.buffer instanceof ArrayBuffer)) {
+                    console.log(`回復: ${key}から有効なバイナリデータを見つけました`);
+                    return prop;
+                }
+            }
+            
+            console.warn(`ID ${item.id}のアイテムからオーディオデータを回復できませんでした`);
+            return null;
+        }
+
+        // Get recoverable image data
+        function getRecoverableImageData(item) {
+            // Check standard image properties
+            if (item.image && (
+                item.image instanceof Blob || 
+                item.image instanceof File ||
+                typeof item.image === 'object'
+            )) {
+                return item.image;
+            }
+            
+            // Check thumbnail property
+            if (item.thumbnail && (
+                item.thumbnail instanceof Blob || 
+                item.thumbnail instanceof File ||
+                typeof item.thumbnail === 'object'
+            )) {
+                return item.thumbnail;
+            }
+            
+            // Check imageData property
+            if (item.imageData && (
+                item.imageData instanceof Blob || 
+                item.imageData instanceof File ||
+                typeof item.imageData === 'object'
+            )) {
+                return item.imageData;
+            }
+            
+            // Look for binary data that might be images
+            for (const key in item) {
+                if (key === 'image' || key === 'thumbnail' || key === 'imageData' || 
+                    key === 'audio' || key === 'audioData' || key === 'mp3') continue; // Skip already checked or audio data
+                
+                const prop = item[key];
+                if (prop instanceof Blob || prop instanceof File) {
+                    // Check if it's likely an image by mime type
+                    if (prop.type && prop.type.startsWith('image/')) {
+                        console.log(`回復: ${key}から有効な画像データを見つけました`);
+                        return prop;
+                    }
+                }
+                
+                // Check for ArrayBuffer or typed arrays that might be images
+                if (prop instanceof ArrayBuffer || 
+                    (prop && prop.buffer instanceof ArrayBuffer) ||
+                    (typeof prop === 'object' && prop !== null)) {
+                    
+                    // Skip if it looks like audio data (typically larger)
+                    const isLikelyAudio = (
+                        (prop instanceof ArrayBuffer && prop.byteLength > 100000) ||
+                        (prop.buffer instanceof ArrayBuffer && prop.buffer.byteLength > 100000)
+                    );
+                    
+                    if (!isLikelyAudio && key.toLowerCase().includes('image')) {
+                        console.log(`回復: ${key}からバイナリ画像データを見つけました`);
+                        try {
+                            // Try to convert ArrayBuffer to Blob
+                            const blob = new Blob([prop], { type: 'image/jpeg' });
+                            return blob;
+                        } catch (error) {
+                            console.warn(`${key}からBlobへの変換に失敗:`, error);
+                        }
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        // Display MP3 items
+        function displayMp3Items(items) {
+            console.log(`${items.length}件のMP3アイテムを表示します`);
+            mp3List.innerHTML = '';
+            
+            // カウンター
+            let successCount = 0;
+            let errorCount = 0;
+            
+            items.forEach(item => {
+                const mp3Item = document.createElement('div');
+                mp3Item.className = 'mp3-item';
+                
+                const title = item.title || 'Untitled';
+                
+                // Add thumbnail/image if available
+                const thumbnailDiv = document.createElement('div');
+                thumbnailDiv.className = 'mp3-thumbnail';
+                
+                // Try to get image data
+                const imageData = getRecoverableImageData(item);
+                
+                if (imageData) {
+                    try {
+                        let imgUrl;
+                        
+                        // Handle different image data types
+                        if (imageData instanceof Blob || imageData instanceof File) {
+                            imgUrl = URL.createObjectURL(imageData);
+                        } else if (imageData instanceof ArrayBuffer || (imageData && imageData.buffer instanceof ArrayBuffer)) {
+                            const blob = new Blob([imageData], { type: 'image/jpeg' });
+                            imgUrl = URL.createObjectURL(blob);
+                        } else if (typeof imageData === 'object' && imageData !== null) {
+                            // Try to convert object to blob if possible
+                            try {
+                                const blob = new Blob([imageData], { type: 'image/jpeg' });
+                                imgUrl = URL.createObjectURL(blob);
+                            } catch (e) {
+                                console.warn('画像オブジェクトをBlobに変換できません:', e);
+                                thumbnailDiv.classList.add('no-image'); // Fallback to no-image
+                            }
+                        }
+                        
+                        if (imgUrl) {
+                            const img = document.createElement('img');
+                            img.src = imgUrl;
+                            img.alt = title;
+                            img.onload = () => {
+                                URL.revokeObjectURL(img.src); // Clean up the object URL after image loads
+                            };
+                            img.onerror = () => {
+                                console.warn(`画像の読み込みエラー: ${title}`);
+                                URL.revokeObjectURL(img.src);
+                                thumbnailDiv.classList.add('no-image'); // Fallback to no-image on error
+                            };
+                            
+                            thumbnailDiv.appendChild(img);
+                        } else {
+                            thumbnailDiv.classList.add('no-image'); // No valid URL
+                        }
+                    } catch (error) {
+                        console.error(`画像データの処理エラー (ID: ${item.id}):`, error);
+                        thumbnailDiv.classList.add('no-image'); // Fallback to no-image on error
+                    }
+                } else {
+                    thumbnailDiv.classList.add('no-image'); // No image data
+                }
+                
+                mp3Item.appendChild(thumbnailDiv);
+                
+                // Date formatting
+                const dateText = item.date ? formatDate(new Date(item.date)) : '日付なし';
+                const fileSize = 'fileSize' in item ? formatFileSize(item.fileSize) : '不明';
+                
+                // Create content div for title and other info
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'mp3-content';
+                
+                // Add number badge if available
+                if (item.number) {
+                    const numberBadge = document.createElement('div');
+                    numberBadge.className = 'mp3-number-display';
+                    numberBadge.textContent = item.number;
+                    contentDiv.appendChild(numberBadge);
+                }
+                
+                contentDiv.innerHTML += `
+                    <div class="mp3-title">${title}</div>
+                    <div class="mp3-details">
+                        <div class="mp3-date">${dateText}</div>
+                        <div class="mp3-size">${fileSize}</div>
+                    </div>
+                `;
+                
+                mp3Item.appendChild(contentDiv);
+                
+                // オーディオデータの取得試行
+                const audioData = getRecoverableAudioData(item);
+                
+                // Create audio player
+                const audioContainer = document.createElement('div');
+                audioContainer.className = 'audio-container';
+                
+                if (audioData) {
+                    try {
+                        // Convert audio data to blob URL
+                        const blob = new Blob([audioData], { type: 'audio/mpeg' });
+                        const audioUrl = URL.createObjectURL(blob);
+                        
+                        // Create audio element
+                        const audio = document.createElement('audio');
+                        audio.controls = true;
+                        audio.src = audioUrl;
+                        
+                        // Add to container
+                        audioContainer.appendChild(audio);
+                        contentDiv.appendChild(audioContainer);
+                        
+                        // Add download button
+                        const downloadButton = document.createElement('button');
+                        downloadButton.className = 'download-btn';
+                        downloadButton.innerHTML = '<i class="fas fa-download"></i> ダウンロード';
+                        downloadButton.onclick = function() {
+                            const a = document.createElement('a');
+                            a.href = audioUrl;
+                            a.download = `${title}.mp3`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        };
+                        
+                        const actionContainer = document.createElement('div');
+                        actionContainer.className = 'action-buttons';
+                        actionContainer.appendChild(downloadButton);
+                        
+                        contentDiv.appendChild(actionContainer);
+                        
+                        successCount++;
+                    } catch (error) {
+                        console.error(`オーディオデータの処理エラー (ID: ${item.id}):`, error);
+                        
+                        // エラーメッセージを表示
+                        const errorMessage = document.createElement('div');
+                        errorMessage.className = 'error-message';
+                        errorMessage.innerHTML = `
+                            <i class="fas fa-exclamation-circle"></i> 
+                            オーディオデータを読み込めませんでした: ${error.message}
+                        `;
+                        audioContainer.appendChild(errorMessage);
+                        contentDiv.appendChild(audioContainer);
+                        
+                        errorCount++;
+                    }
+                } else {
+                    // オーディオデータがない場合
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'error-message';
+                    errorMessage.innerHTML = `
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        オーディオデータが見つかりません
+                    `;
+                    audioContainer.appendChild(errorMessage);
+                    contentDiv.appendChild(audioContainer);
+                    
+                    errorCount++;
+                }
+                
+                mp3List.appendChild(mp3Item);
+            });
+            
+            // 処理結果の通知
+            if (errorCount > 0) {
+                console.warn(`${items.length}件中${errorCount}件のオーディオデータ読み込みに失敗しました`);
+            } else if (items.length > 0) {
+                console.log(`${items.length}件のオーディオデータを正常に読み込みました`);
+            }
+            
+            // Update pagination
+            updatePagination();
+        }
+
+        // Display current page of MP3 items
+        function displayCurrentPage() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const itemsToDisplay = mp3Items.slice(startIndex, endIndex);
+            
+            displayMp3Items(itemsToDisplay);
+        }
+
+        // Update pagination information
+        function updatePagination(itemCount) {
+            // 引数がない場合は、totalItemsを使用
+            const count = itemCount !== undefined ? itemCount : totalItems;
+            
+            const totalPages = Math.ceil(count / itemsPerPage) || 1;
+            pageInfo.textContent = `${currentPage} / ${totalPages}`;
+            
+            // ページ数が変わった場合、currentPageを調整
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+            
+            // ボタンの有効/無効を設定
+            prevPageBtn.disabled = currentPage <= 1;
+            nextPageBtn.disabled = currentPage >= totalPages;
+            
+            console.log(`Pagination updated: page ${currentPage}/${totalPages}, total items: ${count}`);
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (!bytes || isNaN(bytes)) return 'N/A';
+            
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            let size = bytes;
+            let unitIndex = 0;
+            
+            while (size >= 1024 && unitIndex < sizes.length - 1) {
+                size /= 1024;
+                unitIndex++;
+            }
+            
+            return `${size.toFixed(1)} ${sizes[unitIndex]}`;
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return 'N/A'; // Invalid date
+                
+                const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+                return date.toLocaleDateString('ja-JP', options);
+            } catch (e) {
+                console.error('Invalid date:', dateString);
+                return 'N/A';
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            console.log(`Notification (${type}):`, message);
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Trigger reflow to ensure transition works
+            notification.offsetHeight;
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // ページ読み込み時の初期化処理
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM読み込み完了 - 初期化処理を開始します');
+            
+            // アプリケーションの初期化
+            initApp();
+        });
+
+        // アプリケーションの初期化
+        function initApp() {
+            // ストレージ使用状況を確認
+            checkStorage();
+            
+            // ローディングスピナーを表示
+            showLoading();
+            
+            // データベースに接続してデータを読み込む
+            connectToDatabase()
+                .then(() => {
+                    console.log('データベース接続成功 - MP3リストを読み込みます');
+                    loadMp3List();
+                })
+                .catch(error => {
+                    console.error('データベース接続エラー:', error);
+                    hideLoading();
+                    showNotification(`データベース接続エラー: ${error.message}`, 'error');
+                    
+                    // エラーメッセージを表示
+                    mp3List.innerHTML = `
+                        <div class="empty-message">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--netflix-red); margin-bottom: 1rem;"></i>
+                            <h3>データベース接続エラー</h3>
+                            <p>${error.message}</p>
+                            <button id="retry-connection" style="margin-top: 1rem;">再接続を試みる</button>
+                        </div>
+                    `;
+                    
+                    // 再接続ボタンのイベントリスナーを設定
+                    const retryBtn = document.getElementById('retry-connection');
+                    if (retryBtn) {
+                        retryBtn.addEventListener('click', () => {
+                            dbConnectionRetries = 0;
+                            dbVersion = 3; // バージョンをリセット
+                            showLoading();
+                            connectToDatabase()
+                                .then(() => {
+                                    console.log('再接続成功');
+                                    showNotification('データベースに再接続しました', 'success');
+                                    loadMp3List();
+                                })
+                                .catch(error => {
+                                    hideLoading();
+                                    console.error('再接続エラー:', error);
+                                    showNotification(`再接続エラー: ${error.message}`, 'error');
+                                });
+                        });
+                    }
+                });
+        }
+
+        // IndexedDBの接続時にストレージの確認を行う関数
+        function checkStorage() {
+            if (navigator.storage && navigator.storage.estimate) {
+                navigator.storage.estimate().then(estimate => {
+                    console.log('ストレージ使用状況:');
+                    console.log(`使用量: ${formatFileSize(estimate.usage)}`);
+                    console.log(`クォータ: ${formatFileSize(estimate.quota)}`);
+                    console.log(`使用率: ${(estimate.usage / estimate.quota * 100).toFixed(2)}%`);
+                    
+                    // ストレージの使用率が高い場合は警告
+                    if (estimate.usage / estimate.quota > 0.8) {
+                        showNotification(`ストレージの使用率が高いです (${(estimate.usage / estimate.quota * 100).toFixed(2)}%)`, 'warning');
+                    }
+                });
+            } else {
+                console.log('Storage API not supported in this browser');
+            }
+        }
+
+        // データベース接続を試みる
+        function connectToDatabase() {
+            console.log(`データベース接続試行: ${dbName} v${dbVersion} (${dbConnectionRetries + 1}/${MAX_DB_CONNECTION_RETRIES})`);
+            
+            showLoading();
+            
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, dbVersion);
+                
+                request.onerror = function(event) {
+                    console.error('データベース接続エラー:', event.target.error);
+                    
+                    // VersionErrorの場合は別のバージョンで試行
+                    if (event.target.error.name === 'VersionError') {
+                        console.log('バージョンエラー - 別のバージョンで試行します');
+                        
+                        if (dbVersion === 3) {
+                            dbVersion = 2;
+                        } else if (dbVersion === 2) {
+                            dbVersion = 1;
+                        } else {
+                            dbVersion = 3;
+                        }
+                        
+                        dbConnectionRetries++;
+                        
+                        if (dbConnectionRetries < MAX_DB_CONNECTION_RETRIES) {
+                            setTimeout(() => {
+                                connectToDatabase().then(resolve).catch(reject);
+                            }, 500);
+                        } else {
+                            hideLoading();
+                            reject(new Error('互換性のあるデータベースバージョンが見つかりませんでした'));
+                        }
+                    } else {
+                        hideLoading();
+                        reject(event.target.error);
+                    }
+                };
+                
+                request.onblocked = function(event) {
+                    console.warn('データベース接続がブロックされています');
+                    hideLoading();
+                    showNotification('データベース接続がブロックされています。他のタブを閉じて再試行してください。', 'warning');
+                    reject(new Error('データベース接続がブロックされています'));
+                };
+                
+                request.onsuccess = function(event) {
+                    db = event.target.result;
+                    console.log(`データベース '${dbName}' (v${db.version}) に接続しました`);
+                    
+                    // データベース構造の検証
+                    validateDatabaseStructure()
+                        .then(() => {
+                            console.log('データベース構造の検証が完了しました');
+                            hideLoading();
+                            
+                            // バージョン変更を監視
+                            db.onversionchange = function() {
+                                db.close();
+                                console.log('データベースが別のタブで更新されました');
+                                showNotification('データベースが更新されました。ページを再読み込みしてください。', 'info');
+                            };
+                            
+                            resolve(db);
+                        })
+                        .catch(error => {
+                            console.error('データベース構造検証エラー:', error);
+                            hideLoading();
+                            reject(error);
+                        });
+                };
+                
+                request.onupgradeneeded = function(event) {
+                    console.log(`データベースのアップグレード: v${event.oldVersion} -> v${event.newVersion}`);
+                    db = event.target.result;
+                    
+                    // mp3sオブジェクトストアが存在しない場合は作成
+                    if (!db.objectStoreNames.contains('mp3s')) {
+                        console.log('mp3sオブジェクトストアを作成します');
+                        const objectStore = db.createObjectStore('mp3s', { keyPath: 'id', autoIncrement: true });
+                        
+                        // 必要なインデックスを作成
+                        objectStore.createIndex('title', 'title', { unique: false });
+                        objectStore.createIndex('date', 'date', { unique: false });
+                        objectStore.createIndex('number', 'number', { unique: false });
+                        objectStore.createIndex('notionTitle', 'notionTitle', { unique: false });
+                        objectStore.createIndex('notionUrl', 'notionUrl', { unique: false });
+                        objectStore.createIndex('image', 'image', { unique: false });
+                        objectStore.createIndex('thumbnail', 'thumbnail', { unique: false });
+                        console.log('mp3sオブジェクトストアとインデックスを作成しました');
+                    } else {
+                        console.log('mp3sオブジェクトストアは既に存在します');
+                        
+                        // 既存のオブジェクトストアに対するアップグレード処理
+                        const objectStore = event.target.transaction.objectStore('mp3s');
+                        
+                        // 必要なインデックスの確認と追加
+                        ['title', 'date', 'number', 'notionTitle', 'notionUrl', 'image', 'thumbnail'].forEach(indexName => {
+                            if (!objectStore.indexNames.contains(indexName)) {
+                                console.log(`${indexName}インデックスを追加します`);
+                                objectStore.createIndex(indexName, indexName, { unique: false });
+                            }
+                        });
+                    }
+                };
+            });
+        }
+
+        // データベース構造を検証
+        function validateDatabaseStructure() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject(new Error('データベースが接続されていません'));
+                    return;
+                }
+                
+                // mp3sオブジェクトストアが存在するか確認
+                if (!db.objectStoreNames.contains('mp3s')) {
+                    reject(new Error('mp3sオブジェクトストアが存在しません'));
+                    return;
+                }
+                
+                try {
+                    const transaction = db.transaction(['mp3s'], 'readonly');
+                    const objectStore = transaction.objectStore('mp3s');
+                    
+                    // インデックスの確認
+                    const indexNames = Array.from(objectStore.indexNames);
+                    console.log('利用可能なインデックス:', indexNames);
+                    
+                    // 必要なインデックスの確認
+                    const requiredIndices = ['title', 'date'];
+                    const missingIndices = requiredIndices.filter(index => !indexNames.includes(index));
+                    
+                    if (missingIndices.length > 0) {
+                        console.warn('一部の重要なインデックスが見つかりません:', missingIndices);
+                        showNotification('データベースの一部のインデックスが見つかりません。互換性モードで動作します。', 'warning');
+                    }
+                    
+                    // データベース内のアイテム数を確認
+                    const countRequest = objectStore.count();
+                    
+                    countRequest.onsuccess = function() {
+                        const itemCount = countRequest.result;
+                        console.log(`データベース内のアイテム数: ${itemCount}件`);
+                        resolve();
+                    };
+                    
+                    countRequest.onerror = function(event) {
+                        console.error('アイテム数の取得エラー:', event.target.error);
+                        reject(event.target.error);
+                    };
+                } catch (error) {
+                    console.error('データベース構造検証中にエラーが発生しました:', error);
+                    reject(error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
