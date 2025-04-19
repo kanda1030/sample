@@ -12,6 +12,10 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     
+    <!-- Swiper JS -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-3JQJ50606G"></script>
     <script>
@@ -62,12 +66,12 @@
         }
         
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--netflix-black);
-            color: var(--netflix-lighter-grey);
-            line-height: 1.5;
-            padding: 0;
+            font-family: Arial, sans-serif;
             margin: 0;
+            padding: 0;
+            background-color: #111;
+            color: #fff;
+            line-height: 1.5;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -105,9 +109,8 @@
         header {
             background-color: var(--netflix-darker);
             padding: var(--space-md) var(--space-xl);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            position: static; /* Changed from sticky to static */
+            /* top: 0; */ /* Removed */
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
         
@@ -155,21 +158,405 @@
         
         .content-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             margin-bottom: var(--space-lg);
+            text-align: center;
         }
         
         h1 {
             font-size: 1.8rem;
             font-weight: 700;
             margin: 0;
+            text-align: center;
+            color: var(--netflix-red);
         }
         
         .description {
             font-size: 1rem;
             color: var(--netflix-light-grey);
             margin: var(--space-md) 0 var(--space-xl);
+            text-align: center;
+        }
+        
+        /* MP3 List Styles */
+        #mp3-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Carousel Styles */
+        .carousel-section {
+            position: relative;
+            margin-bottom: 40px;
+            overflow: visible;
+            border-radius: var(--border-radius-md);
+            padding: 0;
+        }
+        
+        .carousel-container {
+            position: relative;
+            overflow: hidden; /* Changed to hidden to control exact visibility */
+            width: 98%; /* Increased width to fit precisely 3 slides */
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 15px 0;
+        }
+        
+        .swiper-wrapper {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            padding: 10px 0;
+        }
+        
+        .swiper-slide {
+            flex: 0 0 calc(33.33% - 10px); /* Adjusted to show exactly 3 slides */
+            min-width: calc(33.33% - 10px);
+            margin-right: 15px;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .swiper-slide:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+        }
+        
+        .swiper-slide-duplicate-active,
+        .swiper-slide-active {
+            z-index: 2;
+        }
+        
+        .swiper-slide-duplicate-next,
+        .swiper-slide-next {
+            z-index: 1;
+        }
+        
+        .swiper-slide-visible {
+            /* For slides currently visible in the viewport */
+            opacity: 1;
+        }
+        
+        .swiper-slide-prev {
+            /* For the previous slide */
+        }
+        
+        .radius101000 {
+            border-radius: 10px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .carousel-slide:hover {
+            transform: scale(1.03);
+        }
+        
+        .carousel-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            display: block;
+            border-radius: var(--border-radius-sm);
+            transition: all 0.3s ease;
+        }
+        
+        .carousel-slide:hover .carousel-image {
+            filter: brightness(0.85);
+        }
+        
+        .carousel-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, 
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 0) 60%, 
+                rgba(0, 0, 0, 0.7) 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .carousel-content {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+        }
+        
+        .carousel-play-button {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--netflix-red);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            margin-right: 10px;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .carousel-slide:hover .carousel-play-button {
+            transform: scale(1.1);
+            background-color: white;
+        }
+        
+        .carousel-title {
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            max-width: calc(100% - 50px);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .carousel-prev,
+        .carousel-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        
+        /* Restore hover effects for navigation buttons */
+        .carousel-prev:hover,
+        .carousel-next:hover {
+            background-color: rgba(229, 9, 20, 0.8);
+            transform: translateY(-50%) scale(1.05);
+        }
+        
+        .carousel-prev {
+            left: 0;
+        }
+        
+        .carousel-next {
+            right: 0;
+        }
+        
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .carousel-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .carousel-dot.active {
+            background-color: var(--netflix-red);
+        }
+        
+        .mp3-item {
+            background-color: #303030;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .mp3-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mp3-number-display {
+            background-color: #e50914;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .mp3-thumbnail {
+            width: 160px;
+            height: 160px;
+            min-width: 160px;
+            background-color: #222;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            margin-right: 15px;
+        }
+        
+        .mp3-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .mp3-thumbnail .no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #777;
+        }
+        
+        .mp3-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-width: 0;
+        }
+        
+        .mp3-title {
+            font-weight: 500;
+            font-size: 16px;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: var(--space-xs);
+        }
+        
+        /* Ribbon Effect */
+        .ribbon-wrapper {
+            width: 120px;
+            height: 120px;
+            overflow: hidden;
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            z-index: 1;
+        }
+        
+        .ribbon {
+            font-size: 14px;
+            font-weight: bold;
+            color: #FFF;
+            text-transform: uppercase;
+            text-align: center;
+            line-height: 25px;
+            transform: rotate(45deg);
+            width: 150px;
+            display: block;
+            background: #e50914;
+            background: linear-gradient(#e50914 0%, #cb0511 100%);
+            box-shadow: 0 3px 10px -5px rgba(0, 0, 0, 1);
+            position: absolute;
+            top: 25px;
+            right: -35px;
+        }
+        
+        .ribbon:before, .ribbon:after {
+            content: "";
+            position: absolute;
+        }
+        
+        .ribbon:before {
+            left: 0;
+            top: 100%;
+            z-index: -1;
+            border-left: 3px solid #8F0808;
+            border-right: 3px solid transparent;
+            border-bottom: 3px solid transparent;
+            border-top: 3px solid #8F0808;
+        }
+        
+        .ribbon:after {
+            right: 0;
+            top: 100%;
+            z-index: -1;
+            border-left: 3px solid transparent;
+            border-right: 3px solid #8F0808;
+            border-bottom: 3px solid transparent;
+            border-top: 3px solid #8F0808;
+        }
+        
+        .play-button, .download-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            padding: var(--space-sm) var(--space-md);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color var(--transition-speed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            min-height: 32px;
+            min-width: 140px;
+            max-width: 200px;
+            margin: 0;
+        }
+        
+        .play-button:hover, .download-button:hover {
+            background-color: var(--netflix-red);
+        }
+        
+        .play-button i, .download-button i {
+            font-size: 1rem;
+            margin-right: 5px;
+        }
+        
+        .no-items {
+            text-align: center;
+            padding: 20px;
+            color: #999;
         }
         
         /* MP3 List styling */
@@ -201,17 +588,17 @@
         }
         
         .mp3-thumbnail {
-            position: relative;
-            width: 60px;
-            height: 60px;
-            min-width: 60px;
-            background-color: var(--netflix-grey);
-            border-radius: var(--border-radius-sm);
+            width: 160px;
+            height: 160px;
+            min-width: 160px;
+            background-color: #333;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            margin-right: var(--space-md);
+            border-radius: 4px;
+            margin-right: 15px;
+            position: relative;
         }
         
         .mp3-thumbnail img {
@@ -235,25 +622,8 @@
             position: relative;
         }
         
-        .mp3-number-display {
-            position: absolute;
-            top: -5px;
-            left: -65px;
-            background-color: var(--netflix-red);
-            color: white;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-weight: bold;
-            font-size: 0.8rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        
         .mp3-title {
-            font-size: 1rem;
+            font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: var(--space-xs);
             overflow: hidden;
@@ -292,8 +662,9 @@
             transform: scale(0.98);
         }
         
+        /* Remove or comment out the 100% width setting for play-button */
         .play-button {
-            width: 100%;
+            /* width: 100%; - removed to restore original button size */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -312,12 +683,46 @@
         }
         
         .download-btn, .notion-btn {
-            padding: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
             border-radius: var(--border-radius-sm);
-            flex: 1;
+            flex: 0.7;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 0.9rem;
+            min-height: 32px;
+            min-width: 140px;
+            max-width: 200px;
+            margin: 0;
+        }
+        
+        /* Play button styling to match download button */
+        .play-btn {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #c41e1e;
+            color: white;
+            flex: 0.7;
+            font-size: 0.9rem;
+            min-height: 32px;
+            min-width: 140px;
+            max-width: 200px;
+            margin: 0;
+        }
+        
+        .play-btn i, .download-btn i {
+            font-size: 1rem;
+            margin-right: 5px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            margin-top: var(--space-xs);
+            gap: var(--space-xs);
+            justify-content: flex-start;
         }
         
         .notion-btn.active {
@@ -429,6 +834,24 @@
         
         .footer-section ul {
             list-style: none;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-flow: column;
+            grid-template-rows: repeat(3, auto);
+            gap: var(--space-sm);
+        }
+        
+        /* Add styling for the bullet list in the footer */
+        .footer-bullet-list {
+            list-style: disc !important;
+            display: block !important;
+            padding-left: 1.5rem;
+        }
+        
+        .footer-bullet-list li {
+            margin-bottom: 0.75rem;
+            color: var(--netflix-light-grey);
+            font-size: 0.9rem;
         }
         
         .footer-section li {
@@ -550,6 +973,98 @@
                 height: 150px;
             }
         }
+        
+        /* Add CSS for disabled download button */
+        .download-btn.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: rgba(100, 100, 100, 0.2);
+        }
+        
+        .download-btn.disabled:hover {
+            background-color: rgba(100, 100, 100, 0.2);
+            transform: none;
+        }
+
+        /* Add CSS for disabled download button */
+        .download-button.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: rgba(100, 100, 100, 0.2);
+            pointer-events: none;
+        }
+        
+        .download-button.disabled:hover {
+            background-color: rgba(100, 100, 100, 0.2);
+            transform: none;
+        }
+
+        /* Add CSS for the footer heading container */
+        .footer-heading-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--space-md);
+        }
+        
+        .footer-heading-container h3 {
+            margin-bottom: 0;
+            margin-right: var(--space-sm);
+        }
+        
+        .notion-note {
+            color: var(--netflix-grey);
+            font-size: 0.9rem;
+        }
+
+        .carousel-slide {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            border-radius: 10px;
+            height: 100%;
+        }
+
+        .carousel-link {
+            display: block;
+            position: relative;
+            height: 100%;
+            text-decoration: none;
+        }
+
+        .carousel-prev,
+        .carousel-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        /* Restore hover effects for navigation buttons */
+        .carousel-prev:hover,
+        .carousel-next:hover {
+            background-color: rgba(229, 9, 20, 0.8);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .carousel-prev {
+            left: 0;
+        }
+
+        .carousel-next {
+            right: 0;
+        }
     </style>
 </head>
 <body>
@@ -566,21 +1081,31 @@
 
     <header>
         <div class="header-content">
-            <a href="#" class="logo">MP3プレーヤー</a>
-            <nav>
-                <ul>
-                    <li><a href="index.html">ホーム</a></li>
-                    <li><a href="player.html" class="active">プレーヤー</a></li>
-                </ul>
-            </nav>
+            <a href="#" class="logo">VocalSample</a>
         </div>
     </header>
 
+    <!-- Carousel Slider -->
+    <div class="carousel-section">
+        <div class="carousel-container">
+            <div class="swiper-wrapper" id="carouselTrack">
+                <!-- Carousel slides will be dynamically generated here -->
+            </div>
+            <button class="carousel-prev">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="carousel-next">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="carousel-dots" id="carouselDots"></div>
+        </div>
+    </div>
+
     <main>
         <div class="content-header">
-            <h1>MP3コレクション</h1>
+            <h1>ボーカルコレクション</h1>
         </div>
-        <p class="description">お気に入りの音楽をリストで管理、再生できます。</p>
+        <p class="description">まずは聴いてみてください<br>気に入ったならあなただけのものにできますが、もちろん選択はあなた次第です。</p>
 
         <div id="mp3-list">
             <!-- MP3 items will be inserted here by JavaScript -->
@@ -597,18 +1122,24 @@
         <div class="footer-content">
             <div class="footer-section">
                 <h3>MP3データベースについて</h3>
-                <p>このサイトでは、MP3ファイルを管理できます。ファイルは端末内のデータベースに保存されるため、インターネット接続がなくても利用可能です。</p>
+                <ul class="footer-bullet-list">
+                    <li>本サイトでは各サンプル、１名様限定となっています。</li>
+                    <li>本サイトのサンプルはUdioの有料プランで生成された曲です。</li>
+                    <li>ダウンロードしたmp3はご自由にお使いください。</li>
+                </ul>
             </div>
             <div class="footer-section" id="notion-links-section">
-                <h3>Notionのリンク</h3>
-                <p>データベースに保存されているNotionリンクの一覧です。</p>
+                <div class="footer-heading-container">
+                    <h3>制作過程</h3>
+                    <span class="notion-note">※Notionサイトに遷移します</span>
+                </div>
                 <ul id="notion-links-list">
                     <!-- Notion links will be inserted here by JavaScript -->
                 </ul>
             </div>
         </div>
         <div class="copyright">
-            &copy; 2023 MP3プレーヤー | All Rights Reserved
+            🄯 2025 サンプルボーカル | Some Rights Reserved - Copyleft
         </div>
     </footer>
 
@@ -617,6 +1148,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const header = document.querySelector('.content-header');
             
+            /* ヘッダーボタン削除
             // DB情報表示ボタン
             const dbInfoBtn = document.createElement('button');
             dbInfoBtn.textContent = 'DB情報表示';
@@ -652,6 +1184,7 @@
             header.appendChild(dbInfoBtn);
             header.appendChild(dbResetBtn);
             header.appendChild(reloadBtn);
+            */
         });
 
         // データベースをリセット
@@ -741,11 +1274,11 @@
 
         // Variables for pagination
         let currentPage = 1;
-        const itemsPerPage = 12; // Changed to show more items per page in grid layout
+        const itemsPerPage = 3; // Change from 12 to 3 to match wireframe
         let mp3Items = [];
         let totalItems = 0;
-        let sortField = 'date'; // Default sort by date
-        let sortDirection = 'desc'; // Default sort direction
+        let sortField = 'number'; // Change from 'date' to 'number' to sort by item number
+        let sortDirection = 'asc'; // Change to 'asc' to show numbers in ascending order
 
         // Reference to page elements
         const prevPageBtn = document.getElementById('prev-page');
@@ -759,6 +1292,7 @@
             if (currentPage > 1) {
                 currentPage--;
                 displayCurrentPage();
+                console.log(`Navigated to page ${currentPage}`); // Add logging for navigation
             }
         });
 
@@ -766,6 +1300,7 @@
             if (currentPage < Math.ceil(totalItems / itemsPerPage)) {
                 currentPage++;
                 displayCurrentPage();
+                console.log(`Navigated to page ${currentPage}`); // Add logging for navigation
             }
         });
 
@@ -973,6 +1508,17 @@
                             const items = event.target.result;
                             console.log(`${items.length}件のMP3アイテムを取得しました`);
                             
+                            // Make sure each item has a number property for sorting
+                            items.forEach((item, index) => {
+                                // If number property is missing, assign one based on index
+                                if (!item.number) {
+                                    item.number = index + 1;
+                                } else if (typeof item.number === 'string') {
+                                    // Convert to number if it's a string
+                                    item.number = parseInt(item.number, 10) || index + 1;
+                                }
+                            });
+                            
                             // Diagnostic information about audio data
                             const audioDataStats = {
                                 total: items.length,
@@ -1057,6 +1603,10 @@
                             mp3Items = mp3Items.filter(item => !(item.title && item.title.startsWith('Notion:')));
                             console.log(`表示可能なMP3アイテム: ${mp3Items.length}件 (${allItems.length - mp3Items.length}件のNotionアイテムを除外)`);
 
+                            // Reset current page to 1 when loading new data
+                            currentPage = 1;
+                            console.log(`Pagination reset: page ${currentPage}, items per page: ${itemsPerPage}, total items: ${mp3Items.length}`);
+                            
                             // Display items for the current page
                             displayCurrentPage();
 
@@ -1266,198 +1816,216 @@
 
         // Display MP3 items
         function displayMp3Items(items) {
-            console.log(`${items.length}件のMP3アイテムを表示します`);
+            const mp3List = document.getElementById('mp3-list');
             mp3List.innerHTML = '';
             
-            // カウンター
-            let successCount = 0;
-            let errorCount = 0;
-            
-            items.forEach(item => {
+            if (items.length === 0) {
+                mp3List.innerHTML = '<div class="no-items">MP3ファイルが見つかりません</div>';
+                return;
+            }
+
+            // Get the downloaded items from localStorage
+            const downloadedItems = JSON.parse(localStorage.getItem('downloadedMp3s') || '{}');
+
+            // Remove the redundant pagination logic - we're already receiving the correct items for the current page
+            items.forEach((item, index) => {
                 const mp3Item = document.createElement('div');
                 mp3Item.className = 'mp3-item';
                 
-                const title = item.title || 'Untitled';
+                const numberDisplay = document.createElement('div');
+                numberDisplay.className = 'mp3-number-display';
+                numberDisplay.textContent = item.number || index + 1;
                 
-                // Add thumbnail/image if available
-                const thumbnailDiv = document.createElement('div');
-                thumbnailDiv.className = 'mp3-thumbnail';
+                const thumbnailContainer = document.createElement('div');
+                thumbnailContainer.className = 'mp3-thumbnail';
                 
-                // Try to get image data
+                // Add ribbon wrapper and ribbon
+                const ribbonWrapper = document.createElement('div');
+                ribbonWrapper.className = 'ribbon-wrapper';
+                const ribbon = document.createElement('div');
+                ribbon.className = 'ribbon';
+                ribbon.textContent = '先着一名限定';
+                ribbonWrapper.appendChild(ribbon);
+                thumbnailContainer.appendChild(ribbonWrapper);
+                
+                // Try to get image data using the recovery function
                 const imageData = getRecoverableImageData(item);
-                
                 if (imageData) {
+                    const img = document.createElement('img');
                     try {
-                        let imgUrl;
-                        
-                        // Handle different image data types
-                        if (imageData instanceof Blob || imageData instanceof File) {
-                            imgUrl = URL.createObjectURL(imageData);
-                        } else if (imageData instanceof ArrayBuffer || (imageData && imageData.buffer instanceof ArrayBuffer)) {
-                            const blob = new Blob([imageData], { type: 'image/jpeg' });
-                            imgUrl = URL.createObjectURL(blob);
-                        } else if (typeof imageData === 'object' && imageData !== null) {
-                            // Try to convert object to blob if possible
-                            try {
-                                const blob = new Blob([imageData], { type: 'image/jpeg' });
-                                imgUrl = URL.createObjectURL(blob);
-                            } catch (e) {
-                                console.warn('画像オブジェクトをBlobに変換できません:', e);
-                                thumbnailDiv.classList.add('no-image'); // Fallback to no-image
-                            }
-                        }
-                        
-                        if (imgUrl) {
-                            const img = document.createElement('img');
-                            img.src = imgUrl;
-                            img.alt = title;
-                            img.onload = () => {
-                                URL.revokeObjectURL(img.src); // Clean up the object URL after image loads
-                            };
-                            img.onerror = () => {
-                                console.warn(`画像の読み込みエラー: ${title}`);
-                                URL.revokeObjectURL(img.src);
-                                thumbnailDiv.classList.add('no-image'); // Fallback to no-image on error
-                            };
-                            
-                            thumbnailDiv.appendChild(img);
+                        // Handle different types of image data
+                        if (imageData instanceof Blob) {
+                            img.src = URL.createObjectURL(imageData);
+                        } else if (imageData.data) {
+                            img.src = URL.createObjectURL(new Blob([imageData.data], { type: imageData.type || 'image/jpeg' }));
                         } else {
-                            thumbnailDiv.classList.add('no-image'); // No valid URL
+                            // Try to create a blob from binary data
+                            img.src = URL.createObjectURL(new Blob([imageData], { type: 'image/jpeg' }));
                         }
+                        thumbnailContainer.appendChild(img);
                     } catch (error) {
-                        console.error(`画像データの処理エラー (ID: ${item.id}):`, error);
-                        thumbnailDiv.classList.add('no-image'); // Fallback to no-image on error
+                        console.warn('Image data conversion error:', error);
+                        thumbnailContainer.innerHTML += '<div class="no-image">No Image</div>';
                     }
                 } else {
-                    thumbnailDiv.classList.add('no-image'); // No image data
+                    thumbnailContainer.innerHTML += '<div class="no-image">No Image</div>';
                 }
                 
-                mp3Item.appendChild(thumbnailDiv);
+                const contentContainer = document.createElement('div');
+                contentContainer.className = 'mp3-content';
                 
-                // Date formatting
-                const dateText = item.date ? formatDate(new Date(item.date)) : '日付なし';
-                const fileSize = 'fileSize' in item ? formatFileSize(item.fileSize) : '不明';
+                const title = document.createElement('div');
+                title.className = 'mp3-title';
+                title.textContent = item.title || 'Untitled';
                 
-                // Create content div for title and other info
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'mp3-content';
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'button-container';
                 
-                // Add number badge if available
-                if (item.number) {
-                    const numberBadge = document.createElement('div');
-                    numberBadge.className = 'mp3-number-display';
-                    numberBadge.textContent = item.number;
-                    contentDiv.appendChild(numberBadge);
-                }
+                // Create audio element
+                const audio = document.createElement('audio');
+                audio.style.display = 'none';
                 
-                contentDiv.innerHTML += `
-                    <div class="mp3-title">${title}</div>
-                    <div class="mp3-details">
-                        <div class="mp3-date">${dateText}</div>
-                        <div class="mp3-size">${fileSize}</div>
-                    </div>
-                `;
-                
-                mp3Item.appendChild(contentDiv);
-                
-                // オーディオデータの取得試行
+                // Try to get audio data using the recovery function
                 const audioData = getRecoverableAudioData(item);
-                
-                // Create audio player
-                const audioContainer = document.createElement('div');
-                audioContainer.className = 'audio-container';
-                
                 if (audioData) {
                     try {
-                        // Convert audio data to blob URL
-                        const blob = new Blob([audioData], { type: 'audio/mpeg' });
-                        const audioUrl = URL.createObjectURL(blob);
-                        
-                        // Create audio element
-                        const audio = document.createElement('audio');
-                        audio.controls = true;
-                        audio.src = audioUrl;
-                        
-                        // Add to container
-                        audioContainer.appendChild(audio);
-                        contentDiv.appendChild(audioContainer);
-                        
-                        // Add download button
-                        const downloadButton = document.createElement('button');
-                        downloadButton.className = 'download-btn';
-                        downloadButton.innerHTML = '<i class="fas fa-download"></i> ダウンロード';
-                        downloadButton.onclick = function() {
-                            const a = document.createElement('a');
-                            a.href = audioUrl;
-                            a.download = `${title}.mp3`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        };
-                        
-                        const actionContainer = document.createElement('div');
-                        actionContainer.className = 'action-buttons';
-                        actionContainer.appendChild(downloadButton);
-                        
-                        contentDiv.appendChild(actionContainer);
-                        
-                        successCount++;
+                        // Handle different types of audio data
+                        if (audioData instanceof Blob) {
+                            audio.src = URL.createObjectURL(audioData);
+                        } else if (audioData.data) {
+                            audio.src = URL.createObjectURL(new Blob([audioData.data], { type: audioData.type || 'audio/mpeg' }));
+                        } else {
+                            // Try to create a blob from binary data
+                            audio.src = URL.createObjectURL(new Blob([audioData], { type: 'audio/mpeg' }));
+                        }
                     } catch (error) {
-                        console.error(`オーディオデータの処理エラー (ID: ${item.id}):`, error);
-                        
-                        // エラーメッセージを表示
-                        const errorMessage = document.createElement('div');
-                        errorMessage.className = 'error-message';
-                        errorMessage.innerHTML = `
-                            <i class="fas fa-exclamation-circle"></i> 
-                            オーディオデータを読み込めませんでした: ${error.message}
-                        `;
-                        audioContainer.appendChild(errorMessage);
-                        contentDiv.appendChild(audioContainer);
-                        
-                        errorCount++;
+                        console.warn('Audio data conversion error:', error);
                     }
-                } else {
-                    // オーディオデータがない場合
-                    const errorMessage = document.createElement('div');
-                    errorMessage.className = 'error-message';
-                    errorMessage.innerHTML = `
-                        <i class="fas fa-exclamation-triangle"></i> 
-                        オーディオデータが見つかりません
-                    `;
-                    audioContainer.appendChild(errorMessage);
-                    contentDiv.appendChild(audioContainer);
-                    
-                    errorCount++;
                 }
+                
+                // Create play button
+                const playButton = document.createElement('button');
+                playButton.className = 'play-button';
+                playButton.innerHTML = '<i class="fas fa-play"></i> 再生';
+                playButton.onclick = function() {
+                    // Stop all other playing audio
+                    document.querySelectorAll('audio').forEach(a => {
+                        if (a !== audio) {
+                            a.pause();
+                            a.currentTime = 0;
+                        }
+                    });
+                    
+                    // Reset all play buttons
+                    document.querySelectorAll('.play-button').forEach(btn => {
+                        if (btn !== playButton) {
+                            btn.innerHTML = '<i class="fas fa-play"></i> 再生';
+                        }
+                    });
+                    
+                    if (audio.paused) {
+                        audio.play();
+                        playButton.innerHTML = '<i class="fas fa-pause"></i> 停止';
+                    } else {
+                        audio.pause();
+                        playButton.innerHTML = '<i class="fas fa-play"></i> 再生';
+                    }
+                };
+                
+                // Create download button
+                const downloadButton = document.createElement('button');
+                downloadButton.className = 'download-button';
+                downloadButton.innerHTML = '<i class="fas fa-download"></i> ダウンロード';
+                
+                // Check if this item has been downloaded before
+                const isDownloaded = downloadedItems[item.id];
+                if (isDownloaded) {
+                    // Disable the button if already downloaded
+                    downloadButton.classList.add('disabled');
+                    downloadButton.disabled = true;
+                    downloadButton.innerHTML = '<i class="fas fa-check"></i> ダウンロード済み';
+                    downloadButton.style.pointerEvents = 'none'; // Ensure no mouse events are processed
+                } else {
+                    // Enable download with tracking
+                    downloadButton.onclick = function() {
+                        if (audioData) {
+                            try {
+                                let blob;
+                                if (audioData instanceof Blob) {
+                                    blob = audioData;
+                                } else if (audioData.data) {
+                                    blob = new Blob([audioData.data], { type: audioData.type || 'audio/mpeg' });
+                                } else {
+                                    blob = new Blob([audioData], { type: 'audio/mpeg' });
+                                }
+                                
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `${item.title || 'audio'}.mp3`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                                
+                                // Mark this item as downloaded
+                                downloadedItems[item.id] = true;
+                                localStorage.setItem('downloadedMp3s', JSON.stringify(downloadedItems));
+                                
+                                // Update button state
+                                downloadButton.classList.add('disabled');
+                                downloadButton.disabled = true;
+                                downloadButton.innerHTML = '<i class="fas fa-check"></i> ダウンロード済み';
+                                downloadButton.style.pointerEvents = 'none'; // Ensure no mouse events are processed
+                                downloadButton.onclick = null;
+                                
+                                showNotification('ダウンロードが完了しました', 'success');
+                            } catch (error) {
+                                console.warn('Download error:', error);
+                                showNotification('ダウンロードエラー: ' + error.message, 'error');
+                            }
+                        } else {
+                            showNotification('オーディオデータが見つかりません', 'error');
+                        }
+                    };
+                }
+                
+                buttonContainer.appendChild(playButton);
+                buttonContainer.appendChild(downloadButton);
+                
+                contentContainer.appendChild(title);
+                contentContainer.appendChild(buttonContainer);
+                contentContainer.appendChild(audio);
+                
+                mp3Item.appendChild(numberDisplay);
+                mp3Item.appendChild(thumbnailContainer);
+                mp3Item.appendChild(contentContainer);
                 
                 mp3List.appendChild(mp3Item);
             });
             
-            // 処理結果の通知
-            if (errorCount > 0) {
-                console.warn(`${items.length}件中${errorCount}件のオーディオデータ読み込みに失敗しました`);
-            } else if (items.length > 0) {
-                console.log(`${items.length}件のオーディオデータを正常に読み込みました`);
-            }
-            
-            // Update pagination
-            updatePagination();
+            // Update pagination controls based on total items, not just the current page items
+            updatePagination(totalItems);
         }
 
         // Display current page of MP3 items
         function displayCurrentPage() {
+            console.log(`Displaying page ${currentPage} (items ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, mp3Items.length)})`);
+            
             const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, mp3Items.length);
             const itemsToDisplay = mp3Items.slice(startIndex, endIndex);
             
             displayMp3Items(itemsToDisplay);
+            
+            // Update pagination info directly to ensure it's always in sync
+            updatePagination(mp3Items.length);
         }
 
         // Update pagination information
         function updatePagination(itemCount) {
-            // 引数がない場合は、totalItemsを使用
-            const count = itemCount !== undefined ? itemCount : totalItems;
+            // Always use the total number of MP3 items for consistent pagination
+            const count = mp3Items ? mp3Items.length : 0;
             
             const totalPages = Math.ceil(count / itemsPerPage) || 1;
             pageInfo.textContent = `${currentPage} / ${totalPages}`;
@@ -1769,6 +2337,364 @@
                 }
             });
         }
+        
+        // Function to initialize carousel with MP3 items
+        function initCarousel() {
+            console.log('Initializing carousel');
+            
+            return function updateCarousel() {
+                console.log('Updating carousel with MP3 items');
+                
+                const carouselTrack = document.getElementById('carouselTrack');
+                const carouselDots = document.getElementById('carouselDots');
+                
+                if (!carouselTrack || !mp3Items || !mp3Items.length) {
+                    console.log('Cannot update carousel: missing elements or items');
+                    return;
+                }
+                
+                // Clear existing content
+                carouselTrack.innerHTML = '';
+                if (carouselDots) carouselDots.innerHTML = '';
+                
+                // Get featured items for carousel (up to 8)
+                const featuredItems = mp3Items.slice(0, 8);
+
+                // Create duplicate items for infinite scroll effect
+                const itemsWithDuplicates = [...featuredItems, ...featuredItems, ...featuredItems];
+                
+                // Create slides for each featured item (original + duplicates for infinite effect)
+                itemsWithDuplicates.forEach((item, index) => {
+                    // Create slide element
+                    const slide = document.createElement('div');
+                    slide.className = 'carousel-slide swiper-slide';
+                    
+                    // Add swiper-specific classes
+                    const originalIndex = index % featuredItems.length;
+                    slide.dataset.swiperSlideIndex = originalIndex;
+                    slide.setAttribute('role', 'group');
+                    slide.setAttribute('aria-label', `${originalIndex + 1} / ${featuredItems.length}`);
+                    
+                    // Set duplicate class if needed
+                    if (index < featuredItems.length || index >= featuredItems.length * 2) {
+                        slide.classList.add('swiper-slide-duplicate');
+                    }
+                    
+                    // Get image data for the slide
+                    const imageData = getRecoverableImageData(item);
+                    const imageUrl = imageData ? URL.createObjectURL(
+                        imageData instanceof Blob ? imageData : 
+                        new Blob([imageData], { type: 'image/jpeg' })
+                    ) : '';
+
+                    // Create audio element directly in the slide
+                    const audio = document.createElement('audio');
+                    audio.style.display = 'none';
+                    
+                    // Get audio data for direct playback
+                    const audioData = getRecoverableAudioData(item);
+                    if (audioData) {
+                        try {
+                            // Handle different types of audio data
+                            if (audioData instanceof Blob) {
+                                audio.src = URL.createObjectURL(audioData);
+                            } else if (audioData.data) {
+                                audio.src = URL.createObjectURL(new Blob([audioData.data], { type: audioData.type || 'audio/mpeg' }));
+                            } else {
+                                // Try to create a blob from binary data
+                                audio.src = URL.createObjectURL(new Blob([audioData], { type: 'audio/mpeg' }));
+                            }
+                        } catch (error) {
+                            console.warn('Carousel audio data conversion error:', error);
+                        }
+                    }
+                    
+                    // Create slide content with anchor tag like reference
+                    slide.innerHTML = `
+                        <a href="#" class="carousel-link">
+                            <img class="carousel-image fade-in radius101000 lazyloaded" 
+                                data-src="${imageUrl || 'https://via.placeholder.com/380x240/333/666?text=No+Image'}" 
+                                src="${imageUrl || 'https://via.placeholder.com/380x240/333/666?text=No+Image'}" 
+                                alt="${item.title || 'Untitled'}" 
+                                decoding="async" />
+                            <div class="carousel-overlay">
+                                <div class="carousel-content">
+                                    <button class="carousel-play-button">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <div class="carousel-title">${item.title || 'Untitled'}</div>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                    
+                    // Append the audio element to the slide
+                    slide.appendChild(audio);
+                    
+                    // Get the play button after the slide content is set
+                    const playButton = slide.querySelector('.carousel-play-button');
+                    
+                    // Add click event to play audio directly
+                    playButton.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent slide click event from triggering
+                        
+                        // Stop all other playing audio
+                        document.querySelectorAll('audio').forEach(a => {
+                            if (a !== audio) {
+                                a.pause();
+                                a.currentTime = 0;
+                            }
+                        });
+                        
+                        // Reset all play buttons in carousel
+                        document.querySelectorAll('.carousel-play-button').forEach(btn => {
+                            if (btn !== playButton) {
+                                btn.innerHTML = '<i class="fas fa-play"></i>';
+                            }
+                        });
+                        
+                        // Play or pause the audio
+                        if (audio.paused) {
+                            audio.play();
+                            playButton.innerHTML = '<i class="fas fa-pause"></i>';
+                        } else {
+                            audio.pause();
+                            playButton.innerHTML = '<i class="fas fa-play"></i>';
+                        }
+                    });
+                    
+                    // Add slide to track
+                    carouselTrack.appendChild(slide);
+                    
+                    // Only create dots for original items (not duplicates)
+                    if (index >= featuredItems.length && index < featuredItems.length * 2 && carouselDots) {
+                        const dot = document.createElement('div');
+                        dot.className = 'carousel-dot' + (originalIndex === 0 ? ' active' : '');
+                        dot.dataset.index = originalIndex;
+                        dot.addEventListener('click', () => {
+                            goToSlide(originalIndex);
+                        });
+                        carouselDots.appendChild(dot);
+                    }
+                });
+                
+                // Initialize carousel variables
+                let currentIndex = 0;
+                let slideWidth = document.querySelector('.carousel-slide').getBoundingClientRect().width;
+                const slidesPerView = getSlidesPerView();
+                const maxIndex = Math.max(0, featuredItems.length - slidesPerView);
+                
+                // Update carousel controls
+                const prevButton = document.querySelector('.carousel-prev');
+                const nextButton = document.querySelector('.carousel-next');
+                
+                // No need to update button states initially for infinite loop
+                // as all buttons are always enabled
+                
+                // Function to get number of slides visible based on screen width
+                function getSlidesPerView() {
+                    return 3; // Always show exactly 3 slides
+                }
+                
+                // Function to go to a specific slide
+                function goToSlide(index) {
+                    // Calculate real index based on duplicated slides structure
+                    let realIndex = index + featuredItems.length;
+                    
+                    // For infinite loop - handle end cases with special animation handling
+                    const isWrappingStart = index < 0;
+                    const isWrappingEnd = index >= featuredItems.length;
+                    
+                    if (isWrappingStart) {
+                        // Stop the transition temporarily
+                        carouselTrack.style.transition = "none";
+                        realIndex = featuredItems.length * 2 - 1;
+                        
+                        // Apply the transform immediately
+                        const slideWidth = document.querySelector('.carousel-slide').getBoundingClientRect().width;
+                        const slideMargin = 15; // Updated margin-right value
+                        const translateX = -(realIndex * (slideWidth + slideMargin));
+                        carouselTrack.style.transform = `translate3d(${translateX}px, 0px, 0px)`;
+                        
+                        // Force a reflow
+                        void carouselTrack.offsetWidth;
+                        
+                        // Re-enable the transition and go to the correct slide
+                        setTimeout(() => {
+                            carouselTrack.style.transition = "transform 0.5s ease-in-out";
+                            goToSlide(featuredItems.length - 1);
+                        }, 10);
+                        
+                        return;
+                    }
+                    
+                    if (isWrappingEnd) {
+                        // Stop the transition temporarily
+                        carouselTrack.style.transition = "none";
+                        realIndex = featuredItems.length;
+                        
+                        // Apply the transform immediately
+                        const slideWidth = document.querySelector('.carousel-slide').getBoundingClientRect().width;
+                        const slideMargin = 15; // Updated margin-right value
+                        const translateX = -(realIndex * (slideWidth + slideMargin));
+                        carouselTrack.style.transform = `translate3d(${translateX}px, 0px, 0px)`;
+                        
+                        // Force a reflow
+                        void carouselTrack.offsetWidth;
+                        
+                        // Re-enable the transition and go to the correct slide
+                        setTimeout(() => {
+                            carouselTrack.style.transition = "transform 0.5s ease-in-out";
+                            goToSlide(0);
+                        }, 10);
+                        
+                        return;
+                    }
+                    
+                    // Update current index
+                    currentIndex = index;
+                    
+                    // Apply slide positions
+                    const slideWidth = document.querySelector('.carousel-slide').getBoundingClientRect().width;
+                    const slideMargin = 15; // Updated margin-right value
+                    const translateX = -(realIndex * (slideWidth + slideMargin));
+                    
+                    console.log(`Moving to slide ${currentIndex}, translateX: ${translateX}px, realIndex: ${realIndex}`);
+                    
+                    // Apply smooth transition
+                    carouselTrack.style.transition = "transform 0.5s ease-in-out";
+                    carouselTrack.style.transform = `translate3d(${translateX}px, 0px, 0px)`;
+                    
+                    // Update active dot
+                    if (carouselDots) {
+                        const dots = carouselDots.querySelectorAll('.carousel-dot');
+                        dots.forEach((dot, i) => {
+                            dot.classList.toggle('active', i === currentIndex);
+                        });
+                    }
+                    
+                    // Update slide visibility and active classes
+                    const slides = document.querySelectorAll('.carousel-slide');
+                    slides.forEach((slide, i) => {
+                        // Remove all special classes first
+                        slide.classList.remove('swiper-slide-active', 'swiper-slide-next', 'swiper-slide-prev', 'swiper-slide-visible');
+                        
+                        // Add appropriate classes based on position
+                        const slideIndex = parseInt(slide.dataset.swiperSlideIndex);
+                        if (slideIndex === currentIndex) {
+                            slide.classList.add('swiper-slide-active');
+                            slide.classList.add('swiper-slide-visible');
+                        } else if (slideIndex === (currentIndex + 1) % featuredItems.length) {
+                            slide.classList.add('swiper-slide-next');
+                            slide.classList.add('swiper-slide-visible');
+                        } else if (slideIndex === (currentIndex - 1 + featuredItems.length) % featuredItems.length) {
+                            slide.classList.add('swiper-slide-prev');
+                            slide.classList.add('swiper-slide-visible');
+                        }
+                    });
+                }
+                
+                // Initialize with first slide
+                setTimeout(() => {
+                    if (featuredItems && featuredItems.length > 0) {
+                        const slideWidth = document.querySelector('.carousel-slide').getBoundingClientRect().width;
+                        const slideMargin = 15; // Updated margin-right value
+                        
+                        // Calculate the initial position
+                        const initialIndex = featuredItems.length;
+                        const initialTranslateX = -(initialIndex * (slideWidth + slideMargin));
+                        
+                        carouselTrack.style.transition = "none";
+                        carouselTrack.style.transform = `translate3d(${initialTranslateX}px, 0px, 0px)`;
+                        
+                        // Force a reflow
+                        void carouselTrack.offsetWidth;
+                        
+                        // Update slide visibility and active classes for initial display
+                        const slides = document.querySelectorAll('.carousel-slide');
+                        slides.forEach((slide, i) => {
+                            // Remove all special classes first
+                            slide.classList.remove('swiper-slide-active', 'swiper-slide-next', 'swiper-slide-prev', 'swiper-slide-visible');
+                            
+                            // Add appropriate classes based on position
+                            const slideIndex = parseInt(slide.dataset.swiperSlideIndex);
+                            if (slideIndex === 0) {
+                                slide.classList.add('swiper-slide-active');
+                                slide.classList.add('swiper-slide-visible');
+                            } else if (slideIndex === 1) {
+                                slide.classList.add('swiper-slide-next');
+                                slide.classList.add('swiper-slide-visible');
+                            } else if (slideIndex === featuredItems.length - 1) {
+                                slide.classList.add('swiper-slide-prev');
+                                slide.classList.add('swiper-slide-visible');
+                            }
+                        });
+                        
+                        // Then enable transitions for future slides
+                        setTimeout(() => {
+                            carouselTrack.style.transition = "transform 0.5s ease-in-out";
+                        }, 50);
+                    }
+                }, 100);
+                
+                // Add button event listeners
+                prevButton.addEventListener('click', () => {
+                    goToSlide(currentIndex - 1);
+                });
+                
+                nextButton.addEventListener('click', () => {
+                    goToSlide(currentIndex + 1);
+                });
+                
+                // Add window resize handler
+                window.addEventListener('resize', () => {
+                    slideWidth = document.querySelector('.carousel-slide').getBoundingClientRect().width;
+                    goToSlide(currentIndex);
+                });
+                
+                // Start auto-scrolling
+                let autoScrollInterval;
+                
+                function startAutoScroll() {
+                    stopAutoScroll();
+                    autoScrollInterval = setInterval(() => {
+                        goToSlide(currentIndex + 1); // Will handle wrapping automatically
+                    }, 5000); // Scroll every 5 seconds
+                }
+                
+                function stopAutoScroll() {
+                    if (autoScrollInterval) {
+                        clearInterval(autoScrollInterval);
+                    }
+                }
+                
+                // Start auto-scrolling
+                startAutoScroll();
+                
+                // Pause auto-scrolling when hovering over carousel
+                const carouselSection = document.querySelector('.carousel-section');
+                carouselSection.addEventListener('mouseenter', stopAutoScroll);
+                carouselSection.addEventListener('mouseleave', startAutoScroll);
+                
+                return goToSlide;
+            };
+        }
+        
+        // Initialize carousel and store the update function
+        const updateCarousel = initCarousel();
+        
+        // Modify loadMp3List to update carousel after loading items
+        const originalLoadMp3List = loadMp3List;
+        loadMp3List = function() {
+            originalLoadMp3List.apply(this, arguments);
+            
+            // After mp3Items is populated, wait a bit for everything to process
+            setTimeout(() => {
+                if (mp3Items && mp3Items.length > 0) {
+                    updateCarousel();
+                }
+            }, 1000);
+        };
     </script>
 </body>
 </html>
