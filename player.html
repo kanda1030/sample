@@ -174,10 +174,13 @@
         
         /* MP3 List styling */
         #mp3-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: var(--space-lg);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
             margin-bottom: var(--space-xl);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .mp3-item {
@@ -186,6 +189,10 @@
             overflow: hidden;
             transition: transform var(--transition-speed), box-shadow var(--transition-speed);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: row;
+            padding: var(--space-sm);
+            align-items: center;
         }
         
         .mp3-item:hover {
@@ -195,12 +202,16 @@
         
         .mp3-thumbnail {
             position: relative;
-            height: 180px;
+            width: 60px;
+            height: 60px;
+            min-width: 60px;
             background-color: var(--netflix-grey);
+            border-radius: var(--border-radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            margin-right: var(--space-md);
         }
         
         .mp3-thumbnail img {
@@ -213,37 +224,38 @@
             content: "\f001";
             font-family: "Font Awesome 6 Free";
             font-weight: 900;
-            font-size: 3rem;
+            font-size: 1.5rem;
             color: rgba(255, 255, 255, 0.2);
         }
         
         .mp3-content {
-            padding: var(--space-md);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             position: relative;
         }
         
         .mp3-number-display {
             position: absolute;
-            top: -25px;
-            left: var(--space-md);
+            top: -5px;
+            left: -65px;
             background-color: var(--netflix-red);
             color: white;
-            width: 30px;
-            height: 30px;
+            width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
         
         .mp3-title {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
-            margin-bottom: var(--space-sm);
-            white-space: nowrap;
+            margin-bottom: var(--space-xs);
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -252,8 +264,8 @@
             display: flex;
             justify-content: space-between;
             color: var(--netflix-grey);
-            font-size: 0.85rem;
-            margin-bottom: var(--space-md);
+            font-size: 0.8rem;
+            margin-bottom: var(--space-xs);
         }
         
         .audio-container {
@@ -351,7 +363,6 @@
         
         /* No MP3 message */
         .no-mp3-message {
-            grid-column: 1 / -1;
             text-align: center;
             padding: var(--space-xxl);
             background-color: var(--netflix-dark);
@@ -480,7 +491,6 @@
         
         /* Empty message styles */
         .empty-message {
-            grid-column: 1 / -1;
             text-align: center;
             padding: var(--space-xxl);
             background-color: var(--netflix-dark);
