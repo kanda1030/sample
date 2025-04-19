@@ -192,16 +192,16 @@
         .carousel-section {
             position: relative;
             margin-bottom: 40px;
-            overflow: visible;
-            border-radius: var(--border-radius-md);
+            overflow: visible; /* Changed back to visible to allow peeking */
+            width: 100%; /* Use full width */
             padding: 0;
         }
         
         .carousel-container {
             position: relative;
-            overflow: hidden; /* Changed to hidden to control exact visibility */
-            width: 98%; /* Increased width to fit precisely 3 slides */
-            max-width: 1100px;
+            overflow: visible; /* Changed back to visible to allow peeking */
+            width: 100%; /* Full width container */
+            max-width: none; /* Remove max-width constraint */
             margin: 0 auto;
             padding: 15px 0;
         }
@@ -213,9 +213,9 @@
         }
         
         .swiper-slide {
-            flex: 0 0 calc(33.33% - 10px); /* Adjusted to show exactly 3 slides */
-            min-width: calc(33.33% - 10px);
-            margin-right: 15px;
+            flex: 0 0 calc(33.33% - 30px); /* Adjusted to show exactly 3 slides with peeking */
+            min-width: calc(33.33% - 30px);
+            margin-right: 20px; /* Spacing between slides */
             position: relative;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -377,7 +377,7 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 25px; /* Increased spacing from slides */
         }
         
         .carousel-dot {
@@ -2512,7 +2512,7 @@
                         
                         // Apply the transform immediately
                         const slideWidth = document.querySelector('.carousel-slide').getBoundingClientRect().width;
-                        const slideMargin = 15; // Updated margin-right value
+                        const slideMargin = 20; // Updated margin-right value
                         const translateX = -(realIndex * (slideWidth + slideMargin));
                         carouselTrack.style.transform = `translate3d(${translateX}px, 0px, 0px)`;
                         
@@ -2535,7 +2535,7 @@
                         
                         // Apply the transform immediately
                         const slideWidth = document.querySelector('.carousel-slide').getBoundingClientRect().width;
-                        const slideMargin = 15; // Updated margin-right value
+                        const slideMargin = 20; // Updated margin-right value
                         const translateX = -(realIndex * (slideWidth + slideMargin));
                         carouselTrack.style.transform = `translate3d(${translateX}px, 0px, 0px)`;
                         
@@ -2556,7 +2556,7 @@
                     
                     // Apply slide positions
                     const slideWidth = document.querySelector('.carousel-slide').getBoundingClientRect().width;
-                    const slideMargin = 15; // Updated margin-right value
+                    const slideMargin = 20; // Updated margin-right value
                     const translateX = -(realIndex * (slideWidth + slideMargin));
                     
                     console.log(`Moving to slide ${currentIndex}, translateX: ${translateX}px, realIndex: ${realIndex}`);
@@ -2598,7 +2598,7 @@
                 setTimeout(() => {
                     if (featuredItems && featuredItems.length > 0) {
                         const slideWidth = document.querySelector('.carousel-slide').getBoundingClientRect().width;
-                        const slideMargin = 15; // Updated margin-right value
+                        const slideMargin = 20; // Updated margin-right value
                         
                         // Calculate the initial position
                         const initialIndex = featuredItems.length;
